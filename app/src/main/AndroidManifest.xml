@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Digestion">
-        <activity android:name="com.github.calories.activities.HistoryActivity"></activity>
+        <activity android:name="com.github.calories.activities.HistoryActivity" />
         <activity android:name="com.github.calories.activities.DayDetailsActivity" />
         <activity android:name="com.github.calories.activities.FoodDetailsActivity" />
         <activity android:name="com.github.calories.activities.AddActivity" />
