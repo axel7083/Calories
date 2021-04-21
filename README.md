@@ -2,7 +2,9 @@
 
 This application allows you to scan products with a code-bar, input the quantity eaten (gramme), and on a calendar will be displayed the total calories (kcal) you ate for each day.
 
+In order to evaluate the number of calories per day, the application is using the [OpenFoodFacts](https://world.openfoodfacts.org/) API.
 
+Screenshots => [here](https://github.com/axel7083/Calories/tree/main/screenshots)
 
 # Open source licences
 
