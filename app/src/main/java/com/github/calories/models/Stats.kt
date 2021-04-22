@@ -1,13 +1,13 @@
 package com.github.calories.models
 
 class Stats(
-    val energy: Double,
-    val fat: Double,
-    val fiber: Double,
-    val protein: Double,
-    val salt: Double,
-    val saturated_fat: Double,
-    val sodium: Double,
-    val sugar: Double,
-    val day: String
+    var energy: Double,
+    var fat: Double,
+    var fiber: Double,
+    var protein: Double,
+    var salt: Double,
+    var saturated_fat: Double,
+    var sodium: Double,
+    var sugar: Double,
+    var day: String
 ) {}

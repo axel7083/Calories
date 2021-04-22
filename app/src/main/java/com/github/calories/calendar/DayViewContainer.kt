@@ -7,7 +7,9 @@ import com.kizitonwose.calendarview.ui.ViewContainer
 class DayViewContainer(view: View) : ViewContainer(view) {
     // With ViewBinding
     val dayValue = CalendarDayLayoutBinding.bind(view).calendarDayText
-    val dayInfo = CalendarDayLayoutBinding.bind(view).calendarDayInfo
+    val dayEnergy = CalendarDayLayoutBinding.bind(view).calendarDayEnergy
+    val dayWeight = CalendarDayLayoutBinding.bind(view).calendarDayWeight
     val dayLayout = CalendarDayLayoutBinding.bind(view).calendarDayLayout
-    val calendarDayCard = CalendarDayLayoutBinding.bind(view).calendarDayCard
+    val calendarDayEnergyCard = CalendarDayLayoutBinding.bind(view).calendarDayEnergyCard
+    val calendarDayWeightCard = CalendarDayLayoutBinding.bind(view).calendarDayWeightCard
 }

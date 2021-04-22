@@ -33,6 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_INGREDIENTS = "tbl_ingredients";
     public static final String TABLE_R_F = "tbl_r_f";
     public static final String TABLE_F_I = "tbl_f_i";
+    public static final String TABLE_WEIGHT = "tbl_weight";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -72,6 +73,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "ID_Ingredient TEXT NOT NULL, " +
                 "percent_estimate REAL, " +
                 "PRIMARY KEY ( ID_Food, ID_Ingredient))";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_WEIGHT + "(" +
+                "Date TEXT PRIMARY KEY, " +
+                "value REAL NOT NULL)";
         db.execSQL(query);
     }
 
@@ -366,6 +372,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_RECORD, query.toString(), null);
         db.close();
     }
+
+    public void addWeight(String date, Float weight) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values =  new ContentValues();
+        values.put("Date", date);
+        values.put("value", weight);
+        db.insertOrThrow(TABLE_WEIGHT, null , values);
+
+        db.close();
+
+    }
+
+    public HashMap<String,Float> getWeights(String start_date, String end_date) {
+        HashMap<String,Float> map = new HashMap<>();
+        String select_query= "SELECT Date(Date) as day, value FROM "+ TABLE_WEIGHT +" WHERE day BETWEEN \""+ start_date +"\" AND \""+ end_date +"\"";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+        if (cursor.moveToFirst()) {
+            do {
+                if(cursor.getString(0) != null) {
+                    map.put(cursor.getString(0),cursor.getFloat(1));
+                }
+            }while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return map;
+    }
+
 
     //add the new expense
     /*public long addExpense(Expense expense) {

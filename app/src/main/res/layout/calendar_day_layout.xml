@@ -23,10 +23,11 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="16sp"
-            tools:text="22" />
+            tools:text="22"
+            android:layout_marginBottom="4dp"/>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/calendarDayCard"
+            android:id="@+id/calendarDayEnergyCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -34,7 +35,7 @@
             app:cardCornerRadius="5dp"
             app:cardBackgroundColor="@color/colorAccent"
             android:layout_marginHorizontal="2dp"
-            android:layout_marginTop="5dp">
+            android:layout_marginTop="1dp">
             <TableLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -45,10 +46,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/calendarDayInfo"
+                        android:id="@+id/calendarDayEnergy"
                         tools:text="22"
                         android:layout_marginStart="2dp"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textColor="@color/white"
                         android:ellipsize="end"
                         android:singleLine="true"
@@ -60,7 +61,55 @@
                         android:text="kcal"
                         android:gravity="start"
                         android:layout_marginHorizontal="2dp"
-                        android:id="@+id/calendarDayUnit"
+                        android:id="@+id/calendarDayEnergyUnit"
+                        android:textColor="@color/white"
+                        android:ellipsize="none"
+                        android:textSize="8sp"
+                        android:singleLine="true"
+                        />
+                </TableRow>
+
+            </TableLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/calendarDayWeightCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="5dp"
+            app:cardBackgroundColor="@color/orange"
+            android:layout_marginHorizontal="2dp"
+            android:layout_marginTop="1dp">
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stretchColumns="1"
+                android:shrinkColumns="0"
+                >
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/calendarDayWeight"
+                        tools:text="22"
+                        android:layout_marginStart="2dp"
+                        android:textSize="10sp"
+                        android:textColor="@color/white"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Kg"
+                        android:gravity="start"
+                        android:layout_marginHorizontal="2dp"
+                        android:id="@+id/calendarDayWeightUnit"
                         android:textColor="@color/white"
                         android:ellipsize="none"
                         android:textSize="8sp"

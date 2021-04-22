@@ -8,12 +8,15 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class UtilsTime {
 
     public static final String SQL_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
-    public static final String DAY_PATTERN = "yyyy-MM-dd";
+    public static final String DAY_PATTERN = "MM-dd";
+    public static final String DATE_PATTERN = "yyyy-MM-dd";
     public static final String SIMPLE_PATTERN = "HH:mm";
+    public static final String WEEK_MONTH_DAY_PATTERN = "EEE, MMM d";
 
     public static Calendar toCalendar(String str, String pattern) throws ParseException {
         Calendar cal = Calendar.getInstance();
@@ -24,6 +27,10 @@ public class UtilsTime {
 
     public static String formatSQL(Instant instant_start, String timezone) {
         return format(instant_start,timezone, SQL_PATTERN);
+    }
+
+    public static String format(Instant instant_start, String pattern)  {
+        return format(instant_start,TimeZone.getDefault().getID(),pattern);
     }
 
     public static String format(Instant instant_start, String timezone, String pattern) {

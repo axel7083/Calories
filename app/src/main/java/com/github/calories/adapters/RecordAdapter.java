@@ -19,6 +19,7 @@ import com.github.calories.utils.UtilsTime;
 import com.google.gson.Gson;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -55,12 +56,26 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         try {
-            holder.title.setText(format(toCalendar(mData.get(position).getDate(), UtilsTime.SQL_PATTERN).toInstant(),TimeZone.getDefault().getID(),UtilsTime.SIMPLE_PATTERN));
+            String title = format(toCalendar(mData.get(position).getDate(), UtilsTime.SQL_PATTERN).toInstant(),TimeZone.getDefault().getID(),UtilsTime.SIMPLE_PATTERN);
+            title+= " (" + getCalories(mData.get(position).getFoods()) + " kcal)";
+            holder.title.setText(title);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         ((FoodAdapter) holder.rv.getAdapter()).updateData(mData.get(position).getFoods());
         ((FoodAdapter) holder.rv.getAdapter()).notifyDataSetChanged();
+    }
+
+    private int getCalories(List<Food> foods) {
+
+        if(foods == null)
+            return 0;
+
+        int val = 0;
+        for(Food food: foods)  {
+            val+=food.getEnergyKCAL100g()*food.getQuantity()/100;
+        }
+        return val;
     }
 
     // total number of rows

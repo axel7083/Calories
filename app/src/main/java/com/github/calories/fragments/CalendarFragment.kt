@@ -32,7 +32,8 @@ class CalendarFragment : Fragment() {
 
     private lateinit var binding: FragmentCalendarBinding
     private lateinit var db: DatabaseHelper
-    private lateinit var map: HashMap<String, RawValues>
+    private lateinit var energyMap: HashMap<String, RawValues>
+    private lateinit var weightMap: HashMap<String, Float>
     private var currentMonth: CalendarMonth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,8 +57,10 @@ class CalendarFragment : Fragment() {
 
     private fun fetchData() {
         val now = LocalDate.now()
-        map = db.getEnergyPerDay(now.withDayOfMonth(1).toString(),now.withDayOfMonth(now.lengthOfMonth()).toString())
-
+        val start = now.withDayOfMonth(1).toString()
+        val end = now.withDayOfMonth(now.lengthOfMonth()).toString()
+        energyMap = db.getEnergyPerDay(start,end)
+        weightMap = db.getWeights(start,end)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -71,9 +74,9 @@ class CalendarFragment : Fragment() {
                 // Log.d(TAG, "bind: ${day.date.toString()}")
                 container.dayValue.text = day.date.dayOfMonth.toString()
 
-                if(map.contains(day.date.toString())) {
-                    container.calendarDayCard.visibility = View.VISIBLE
-                    container.dayInfo.text = String.format("%d", map[day.date.toString()]!!.energy)
+                if(energyMap.contains(day.date.toString())) {
+                    container.calendarDayEnergyCard.visibility = View.VISIBLE
+                    container.dayEnergy.text = String.format("%d", energyMap[day.date.toString()]!!.energy)
                     // On click
                     container.dayLayout.setOnClickListener {
                         // Log.d(TAG, "bind: Clicked ${day.date.toString()}")
@@ -83,8 +86,16 @@ class CalendarFragment : Fragment() {
                     }
                 }
                 else {
-                    container.calendarDayCard.visibility = View.GONE
+                    container.calendarDayEnergyCard.visibility = View.GONE
                     container.dayLayout.setOnClickListener(null)
+                }
+
+                if(weightMap.contains(day.date.toString())) {
+                    container.calendarDayWeightCard.visibility = View.VISIBLE
+                    container.dayWeight.text = String.format("%.1f", weightMap[day.date.toString()]!!)
+                }
+                else {
+                    container.calendarDayWeightCard.visibility = View.GONE
                 }
 
                 if (day.owner == DayOwner.THIS_MONTH) {
@@ -101,7 +112,7 @@ class CalendarFragment : Fragment() {
             if(month != currentMonth) {
                 Log.d(TAG, "monthScrollListener: ${month.year}/${month.month}")
                 val start = LocalDate.of(month.year, month.month, 1)
-                map.putAll(db.getEnergyPerDay(start.toString(),start.withDayOfMonth(start.lengthOfMonth()).toString()))
+                energyMap.putAll(db.getEnergyPerDay(start.toString(),start.withDayOfMonth(start.lengthOfMonth()).toString()))
                 binding.calendarView.notifyCalendarChanged()
                 currentMonth = month
             }

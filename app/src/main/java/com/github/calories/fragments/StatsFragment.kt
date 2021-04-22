@@ -27,7 +27,7 @@ import kotlin.collections.ArrayList
 class StatsFragment : Fragment() {
 
     private lateinit var binding: FragmentStatsBinding
-    private var rawValues: List<RawValues> = ArrayList()
+    private var rawValues: List<Pair<String, Float>> = ArrayList()
 
     private lateinit var db: DatabaseHelper
 
@@ -43,11 +43,12 @@ class StatsFragment : Fragment() {
         )
 
         map.forEach { raw ->
-            rawValues = rawValues.plus(raw.value)
+            rawValues = rawValues.plus(Pair(raw.value.date.substring(5),raw.value.energy.toFloat()))
+            //rawValues = rawValues.plus(raw.value)
         }
 
         rawValues = rawValues.sortedWith(kotlin.Comparator { t, t2 ->
-            when(toCalendar(t.date, DAY_PATTERN).before(toCalendar(t2.date,DAY_PATTERN))) {
+            when(toCalendar(t.first, DAY_PATTERN).before(toCalendar(t2.first,DAY_PATTERN))) {
                 true -> -1
                 else -> 1
             }
@@ -67,10 +68,10 @@ class StatsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupChart()
+        binding.chart.setData(rawValues)
     }
 
-    private fun checkEmpty() {
+    /*private fun checkEmpty() {
         if (rawValues.isEmpty()) {
             Log.d(TAG, "No data to display")
             binding.emptyGraphWarning.visibility = View.VISIBLE
@@ -147,7 +148,7 @@ class StatsFragment : Fragment() {
         data.barWidth = 0.5f
         data.setDrawValues(true)
         return data
-    }
+    }*/
 
     companion object {
         private const val TAG: String = "StatsFragment"

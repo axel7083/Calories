@@ -75,6 +75,8 @@ public class FoodAdapter extends RecyclerView.Adapter<FoodAdapter.ViewHolder> {
 
         if(builder.length() > 2)
             holder.description.setText(builder.subSequence(0, builder.length() - 2));
+        else
+            holder.description.setText(mData.get(position).getName());
 
         holder.amount_input.setEnabled(!isReadOnly);
         holder.amount_input.setText(String.format(Locale.getDefault(),"%d",mData.get(position).getQuantity()));

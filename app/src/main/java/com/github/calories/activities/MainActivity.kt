@@ -1,18 +1,26 @@
 package com.github.calories.activities
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.github.calories.DatabaseHelper
 import com.github.calories.R
+import com.github.calories.animations.ViewAnimation
 import com.github.calories.databinding.ActivityMainBinding
+import com.github.calories.dialogs.WeightDialog
 import com.github.calories.fragments.CalendarFragment
 import com.github.calories.fragments.StatsFragment
 import com.github.calories.models.Record
+import com.github.calories.utils.UtilsTime
 import com.google.gson.Gson
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +35,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var homeFragment: CalendarFragment
     private lateinit var statsFragment: StatsFragment
 
+    private var isRotate = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,8 +45,44 @@ class MainActivity : AppCompatActivity() {
 
         db = DatabaseHelper(this)
 
-        binding.plusMain.setOnClickListener {
+        binding.fabFood.setOnClickListener {
             startActivityForResult(Intent(this, AddActivity::class.java), ADD_ACTIVITY) //TODO: start activity for results
+        }
+
+        binding.fabScale.setOnClickListener {
+            val dialog = WeightDialog(this, (object : WeightDialog.Callback {
+                override fun addWeight(weight: Float) {
+                    val calendar: Calendar = Calendar.getInstance()
+                    calendar.timeInMillis = System.currentTimeMillis()
+                    db.addWeight(UtilsTime.formatSQL(calendar.toInstant(), TimeZone.getDefault().id), weight)
+                    homeFragment.refresh()
+                }
+            }))
+
+            val window = dialog.window
+            if (window != null) {
+                window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.show()
+                window.setGravity(Gravity.BOTTOM)
+                window.setLayout(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        }
+
+        ViewAnimation.init(binding.fabFood);
+        ViewAnimation.init(binding.fabScale);
+
+        binding.fabMenu.setOnClickListener { v->
+            isRotate = ViewAnimation.rotateFab(v, !isRotate)
+            if(isRotate){
+                ViewAnimation.showIn(binding.fabFood);
+                ViewAnimation.showIn(binding.fabScale);
+            }else{
+                ViewAnimation.showOut(binding.fabFood);
+                ViewAnimation.showOut(binding.fabScale);
+            }
         }
 
         binding.home.setOnClickListener {
@@ -98,7 +144,7 @@ class MainActivity : AppCompatActivity() {
                 return
             else
             {
-                val record = Gson().fromJson(data.getStringExtra("record"),Record::class.java)
+                val record = Gson().fromJson(data.getStringExtra("record"), Record::class.java)
                 Log.d(TAG, "onActivityResult: adding record ${db.addRecord(record)}")
                 homeFragment.refresh()
             }

@@ -18,7 +18,6 @@ class StatusBar(context: Context, attrs: AttributeSet) : LinearLayout(context, a
     init {
         val attributes: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.StatusBar)
 
-
         // Setup Right icon (Example: setting icon)
         setDrawableOrNot(attributes.getDrawable(R.styleable.StatusBar_rightIcon),binding.rightIcon,binding.rightIconContainer)
 
