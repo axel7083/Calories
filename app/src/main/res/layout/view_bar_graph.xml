@@ -17,9 +17,18 @@
         app:cardElevation="0dp">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="200dp"
             android:layout_marginStart="@dimen/side_margin"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ProgressBar
+                android:id="@+id/loadingIndicator"
+                android:indeterminateTint="@color/colorAccent"
+                android:layout_gravity="center"
+                android:layout_width="50dp"
+                android:visibility="gone"
+                android:layout_height="50dp"/>
 
             <TextView
                 android:visibility="gone"
@@ -32,9 +41,10 @@
                 android:layout_height="200dp"/>
 
             <com.github.mikephil.charting.charts.BarChart
+                android:visibility="gone"
                 android:id="@+id/graph"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"/>
+                android:layout_height="match_parent"/>
 
         </LinearLayout>
 

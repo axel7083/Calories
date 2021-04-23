@@ -9,7 +9,9 @@ import androidx.fragment.app.Fragment
 import com.github.calories.DatabaseHelper
 import com.github.calories.databinding.FragmentStatsBinding
 import com.github.calories.models.RawValues
+import com.github.calories.models.Stats
 import com.github.calories.utils.CustomBarChartRender
+import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime.*
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -27,7 +29,9 @@ import kotlin.collections.ArrayList
 class StatsFragment : Fragment() {
 
     private lateinit var binding: FragmentStatsBinding
-    private var rawValues: List<Pair<String, Float>> = ArrayList()
+    //private var rawValues: List<Pair<String, Float>> = ArrayList()
+
+    private var stats: List<Stats>? = null
 
     private lateinit var db: DatabaseHelper
 
@@ -35,10 +39,8 @@ class StatsFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         db = DatabaseHelper(context)
-        
-        val now = LocalDate.now()
-        val field: TemporalField = WeekFields.of(Locale.getDefault()).dayOfWeek()
-        val map = db.getEnergyPerDay(
+
+       /* val map = db.getEnergyPerDay(
             now.with(field, 1).toString(),
             now.with(field, 7).toString()
         )
@@ -48,12 +50,12 @@ class StatsFragment : Fragment() {
             //rawValues = rawValues.plus(raw.value)
         }
 
-        rawValues = rawValues.sortedWith(kotlin.Comparator { t, t2 ->
-            when(toCalendar(t.first, DAY_PATTERN).before(toCalendar(t2.first,DAY_PATTERN))) {
+        rawValues = rawValues.sortedWith { t, t2 ->
+            when (toCalendar(t.first, DAY_PATTERN).before(toCalendar(t2.first, DAY_PATTERN))) {
                 true -> -1
                 else -> 1
             }
-        })
+        }*/
     }
 
     override fun onCreateView(
@@ -67,9 +69,45 @@ class StatsFragment : Fragment() {
         return binding.root    }
 
 
+    private fun getEnergy(): List<Pair<String, Float>> {
+        var energy: List<Pair<String, Float>> = ArrayList()
+
+        stats!!.forEach { stat ->
+            energy = energy.plus(Pair(stat.day.substring(5),stat.energy.toFloat()))
+            //rawValues = rawValues.plus(raw.value)
+        }
+        return energy
+    }
+
+    private fun fetchData(back: () -> Unit) {
+        val now = LocalDate.now()
+        val field: TemporalField = WeekFields.of(Locale.getDefault()).dayOfWeek()
+
+        ThreadUtils.execute(requireActivity(), { db.getStats(now.with(field, 1).toString(),
+                now.with(field, 7).toString()) }, { stats ->
+            this.stats = stats as List<Stats>
+            back()
+        })
+    }
+
+    private fun setupCharts() {
+        binding.chart.setData(getEnergy(), true, "%.0f kcal")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.chart.setData(rawValues)
+
+        if(stats == null) {
+            binding.chart.setData(ArrayList())
+            fetchData {
+                setupCharts()
+            }
+        }
+        else
+        {
+            setupCharts()
+        }
+
     }
 
     companion object {

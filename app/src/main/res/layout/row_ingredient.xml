@@ -63,6 +63,8 @@
             <TextView
                 android:id="@+id/title_row"
                 android:text="Tomato"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="18dp"
                 android:layout_width="wrap_content"

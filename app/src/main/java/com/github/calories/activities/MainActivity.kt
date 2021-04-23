@@ -1,7 +1,6 @@
 package com.github.calories.activities
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -13,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.github.calories.DatabaseHelper
 import com.github.calories.R
-import com.github.calories.animations.ViewAnimation
+import com.github.calories.animations.FabAnimation
 import com.github.calories.databinding.ActivityMainBinding
 import com.github.calories.dialogs.WeightDialog
 import com.github.calories.fragments.CalendarFragment
@@ -22,9 +21,7 @@ import com.github.calories.models.Record
 import com.github.calories.utils.ThreadUtils.Companion.execute
 import com.github.calories.utils.UtilsTime
 import com.github.calories.utils.UtilsTime.DATE_PATTERN
-import com.google.android.material.internal.ContextUtils.getActivity
 import com.google.gson.Gson
-import java.time.LocalDate
 import java.util.*
 
 
@@ -82,17 +79,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        ViewAnimation.init(binding.fabFood);
-        ViewAnimation.init(binding.fabScale);
+        FabAnimation.init(binding.fabFood);
+        FabAnimation.init(binding.fabScale);
 
         binding.fabMenu.setOnClickListener { v->
-            isRotate = ViewAnimation.rotateFab(v, !isRotate)
+            isRotate = FabAnimation.rotateFab(v, !isRotate)
             if(isRotate){
-                ViewAnimation.showIn(binding.fabFood);
-                ViewAnimation.showIn(binding.fabScale);
+                FabAnimation.showIn(binding.fabFood);
+                FabAnimation.showIn(binding.fabScale);
             }else{
-                ViewAnimation.showOut(binding.fabFood);
-                ViewAnimation.showOut(binding.fabScale);
+                FabAnimation.showOut(binding.fabFood);
+                FabAnimation.showOut(binding.fabScale);
             }
         }
 

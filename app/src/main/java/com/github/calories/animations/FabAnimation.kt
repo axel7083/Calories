@@ -6,7 +6,7 @@ import android.animation.AnimatorListenerAdapter
 import android.view.View
 
 
-class ViewAnimation {
+class FabAnimation {
 
     companion object {
         fun rotateFab(v: View, rotate: Boolean): Boolean {

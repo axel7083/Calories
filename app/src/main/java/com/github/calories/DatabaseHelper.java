@@ -185,7 +185,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    //TODO: fetch quantity and unit
     public Food getFood(String food_id) {
         ArrayList<Ingredient> ingredients = new ArrayList<>();
         String select_query = "SELECT * FROM "+ TABLE_FOOD +" LEFT JOIN " + TABLE_F_I +" ON "+ TABLE_F_I +".ID_Food = "+ TABLE_FOOD +".ID LEFT JOIN "+ TABLE_INGREDIENTS +" ON "+ TABLE_F_I +".ID_Ingredient = "+ TABLE_INGREDIENTS +".ID WHERE "+ TABLE_FOOD +".ID = " + food_id;
@@ -308,7 +307,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Stats> getStats(String start_date, String end_date) {
         List<Stats> statsList = new ArrayList<>();
 
-        String select_query = "SELECT SUM(tbl_food.Energy_kcal_100g*Quantity/100) AS energy,  SUM(tbl_food.fat_100g*Quantity/100) AS fat,  SUM(tbl_food.fiber_100g*Quantity/100) AS fiber,  SUM(tbl_food.proteins_100g*Quantity/100) AS protein,  SUM(tbl_food.salt_100g*Quantity/100) AS salt,  SUM(tbl_food.saturated_fat_100g*Quantity/100) AS saturated_fat,  SUM(tbl_food.sodium_100g*Quantity/100) AS sodium,  SUM(tbl_food.sugars_100g*Quantity/100) AS sugar,  Date(tbl_record.Date) AS day  FROM tbl_record INNER JOIN tbl_r_f ON tbl_r_f.ID_Record = tbl_record.ID INNER JOIN tbl_food ON tbl_food.ID = tbl_r_f.ID_Food WHERE day BETWEEN \""+ start_date +"\" AND \""+ end_date +"\" GROUP BY day;";
+        String select_query = "SELECT SUM(tbl_food.Energy_kcal_100g*Quantity/100) AS energy,  SUM(tbl_food.fat_100g*Quantity/100) AS fat,  SUM(tbl_food.fiber_100g*Quantity/100) AS fiber,  SUM(tbl_food.proteins_100g*Quantity/100) AS protein,  SUM(tbl_food.salt_100g*Quantity/100) AS salt,  SUM(tbl_food.saturated_fat_100g*Quantity/100) AS saturated_fat,  SUM(tbl_food.sodium_100g*Quantity/100) AS sodium,  SUM(tbl_food.sugars_100g*Quantity/100) AS sugar,  Date(tbl_record.Date) AS day  FROM tbl_record INNER JOIN tbl_r_f ON tbl_r_f.ID_Record = tbl_record.ID INNER JOIN tbl_food ON tbl_food.ID = tbl_r_f.ID_Food WHERE day BETWEEN \""+ start_date +"\" AND \""+ end_date +"\" GROUP BY day ORDER BY day;";
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);
 

@@ -10,6 +10,7 @@ import com.github.calories.DatabaseHelper
 import com.github.calories.adapters.RecordAdapter
 import com.github.calories.databinding.ActivityDayDetailsBinding
 import com.github.calories.models.Record
+import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime
 import com.github.calories.utils.UtilsTime.format
 import com.github.calories.utils.UtilsTime.toCalendar
@@ -23,6 +24,8 @@ class DayDetailsActivity : AppCompatActivity() {
     private val foodRemoved: ArrayList<Pair<String, String>> = ArrayList()
     private lateinit var db: DatabaseHelper
 
+    private lateinit var day: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -30,19 +33,17 @@ class DayDetailsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         db = DatabaseHelper(this)
+        day = intent.getStringExtra("day")!!
 
-        val day = intent.getStringExtra("day")
+        binding.chart.setData(ArrayList())
+        binding.chart.setLoading(true)
+
         adapter = RecordAdapter(this)
-        val records = db.getRecords(day)
-
-        binding.chart.setData(buildStats(records))
-
         adapter.setRemoveListener(object : RecordAdapter.OnRemoveListener {
             override fun onRecordRemoveListener(record_id: String): Boolean {
                 recordsRemoved.add(record_id)
                 return true
             }
-
             override fun onFoodRemoveListener(record_id: String, food_id: String): Boolean {
                 binding.bottomBar.visibility = View.VISIBLE
                 foodRemoved.add(Pair(record_id, food_id))
@@ -50,6 +51,7 @@ class DayDetailsActivity : AppCompatActivity() {
             }
         })
 
+        // Setup Status bar
         binding.statusBar.setTitle(
             format(
                 toCalendar(day, UtilsTime.DATE_PATTERN).toInstant(),
@@ -57,10 +59,12 @@ class DayDetailsActivity : AppCompatActivity() {
             )
         )
 
+        // Setup back arrow
         binding.statusBar.setLeftIconClickListener {
             onBackPressed()
         }
 
+        // Setup Save BTN
         binding.btnSave.setOnClickListener {
             db.deleteFoodLink(foodRemoved)
             db.deleteRecords(recordsRemoved)
@@ -69,11 +73,24 @@ class DayDetailsActivity : AppCompatActivity() {
             finish()
         }
 
-        Log.d(TAG, "onCreate: ${records.size}")
-        adapter.updateData(records)
-        adapter.notifyDataSetChanged()
+        // Setup Recyclerview
         binding.rvDayDetails.layoutManager = LinearLayoutManager(this)
         binding.rvDayDetails.adapter = adapter
+
+        // Fetch data
+        fetchData()
+    }
+
+    private fun fetchData() {
+        // Setup chart
+        ThreadUtils.execute(this, {
+            db.getRecords(day)
+        }, { records ->
+            binding.chart.setData(buildStats(records as List<Record>),false,"%.0fg")
+            adapter.updateData(records)
+            adapter.notifyDataSetChanged()
+            binding.chart.setLoading(false)
+        })
     }
 
     private fun buildStats(records: List<Record>): List<Pair<String, Float>> {

@@ -3,34 +3,69 @@ package com.github.calories.views
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.github.calories.R
 import com.github.calories.databinding.ViewBarGraphBinding
 import com.github.calories.utils.CustomBarChartRender
+import com.github.mikephil.charting.components.LimitLine
+import com.github.mikephil.charting.components.LimitLine.LimitLabelPosition
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import java.util.*
+import kotlin.collections.ArrayList
+
 
 class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs) {
 
+    companion object {
+        private const val TAG: String = "BarGraph"
+    }
+
     private val binding: ViewBarGraphBinding = ViewBarGraphBinding.bind(
-        inflate(
-            context,
-            R.layout.view_bar_graph,
-            this
-        )
+            inflate(
+                    context,
+                    R.layout.view_bar_graph,
+                    this
+            )
     )
+
     private lateinit var data: List<Pair<String, Float>>
     private val BACKGROUND: Int = Color.TRANSPARENT
+    var valueFormat : String = "%.0f"
 
-    fun setData(data: List<Pair<String, Float>>) {
+    fun setLoading(b: Boolean) {
+        binding.loadingIndicator.visibility = if(b) View.VISIBLE else View.GONE
+        binding.loadingIndicator.isIndeterminate = b
+
+        if(b) {
+            binding.graph.visibility = View.GONE
+            binding.emptyGraphWarning.visibility = View.GONE
+        }
+        else
+            checkEmpty()
+
+    }
+
+    fun setData(data: List<Pair<String, Float>>, displayAverage: Boolean = false, valueFormat: String? = null) {
+
+        if(valueFormat != null)
+            this.valueFormat = valueFormat
+
+        Log.d(TAG, "setData: " + data.size)
         this.data = data
         setupChart()
+
+        if(displayAverage) {
+            setupAverage()
+        }
     }
 
     private fun checkEmpty() {
@@ -47,7 +82,22 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
     private fun setupChart() {
         checkEmpty()
         binding.graph.animateY(800)
-        binding.graph.data = createChartData()
+
+        if(binding.graph.data == null) {
+            binding.graph.data = createChartData()
+        }
+        else
+        {
+            for (i in this.data.indices) {
+                binding.graph.data.addEntry(BarEntry(i.toFloat(), this.data[i].second), 0)
+                Log.d(TAG, "setupChart: adding entry")
+            }
+
+            binding.graph.data.notifyDataChanged()
+            binding.graph.notifyDataSetChanged()
+            binding.graph.invalidate()
+        }
+
         configureChartAppearance()
     }
 
@@ -61,14 +111,34 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         dataSets.add(set1)
         val data = BarData(dataSets)
         data.barWidth = 0.5f
-        data.setValueTextColor( ContextCompat.getColor(context, R.color.textColorSecondary))
+        data.setValueTextSize(8f)
+        data.setValueTextColor(ContextCompat.getColor(context, R.color.textColorSecondary))
         data.setValueFormatter(object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
-                return String.format("%.0fg",value)
+                return String.format(valueFormat, value)
             }
         })
         data.setDrawValues(true)
         return data
+    }
+
+    private fun setupAverage() {
+
+        var average = 0f
+        this.data.forEach { d ->
+            average+=d.second
+        }
+        average/=this.data.size
+
+        val ll1 = LimitLine(average, String.format(Locale.getDefault(), "Average: $valueFormat",average))
+        ll1.lineWidth = 1f
+        ll1.enableDashedLine(10f, 10f, 0f)
+        ll1.labelPosition = LimitLabelPosition.RIGHT_TOP
+        ll1.textSize = 8f
+
+        val leftAxis: YAxis = binding.graph.axisLeft
+        leftAxis.removeAllLimitLines() // reset all limit lines to avoid overlapping lines
+        leftAxis.addLimitLine(ll1)
     }
 
     private fun configureChartAppearance() {
@@ -76,9 +146,9 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         // Make round corner
         val barChartRender =
             CustomBarChartRender(
-                binding.graph,
-                binding.graph.animator,
-                binding.graph.viewPortHandler
+                    binding.graph,
+                    binding.graph.animator,
+                    binding.graph.viewPortHandler
             )
         barChartRender.setRadius(20)
         binding.graph.renderer = barChartRender
@@ -89,7 +159,7 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         binding.graph.scrollBarSize = 100
         binding.graph.isHorizontalScrollBarEnabled = true
         binding.graph.scrollBarDefaultDelayBeforeFade = 100000
-        binding.graph.setVisibleXRangeMaximum(8f)
+       // binding.graph.setVisibleXRangeMaximum(8f)
         binding.graph.setPinchZoom(false)
         binding.graph.isScaleYEnabled = false
         binding.graph.isScaleXEnabled = false
@@ -101,6 +171,7 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         val xAxis = binding.graph.xAxis
         xAxis.textSize = 8f
         xAxis.granularity = 1f
+
         xAxis.isGranularityEnabled = true
         xAxis.textColor = ContextCompat.getColor(context, R.color.textColorPrimary)
         xAxis.setDrawGridLines(false)
@@ -110,10 +181,13 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
                 return data[value.toInt()].first
             }
         }
+
+        binding.graph.axisLeft.axisMinimum = 0f
         binding.graph.axisRight.isEnabled = false
         //
         binding.graph.axisLeft.textColor = ContextCompat.getColor(context, R.color.textColorPrimary)
        // binding.graph.textC
+
     }
 
     init {

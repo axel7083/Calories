@@ -12,18 +12,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Digestion">
-        <activity android:name="com.github.calories.activities.HistoryActivity" />
-        <activity android:name="com.github.calories.activities.DayDetailsActivity" />
-        <activity android:name="com.github.calories.activities.FoodDetailsActivity" />
-        <activity android:name="com.github.calories.activities.AddActivity" />
-        <activity android:name="com.github.calories.activities.MainActivity">
+        <activity android:name="com.github.calories.activities.HistoryActivity" android:screenOrientation="portrait" />
+        <activity android:name="com.github.calories.activities.DayDetailsActivity" android:screenOrientation="portrait" />
+        <activity android:name="com.github.calories.activities.FoodDetailsActivity" android:screenOrientation="portrait" />
+        <activity android:name="com.github.calories.activities.AddActivity" android:screenOrientation="portrait" />
+        <activity android:name="com.github.calories.activities.ScannerActivity" android:screenOrientation="portrait"/>
+        <activity android:name="com.github.calories.activities.MainActivity" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.github.calories.activities.ScannerActivity" />
     </application>
 
 </manifest>
