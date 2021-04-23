@@ -20,7 +20,7 @@ import com.github.calories.openFoodFact.ProductsByQuery
 import com.google.gson.Gson
 import java.util.*
 
-class AddActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.Callback,
+class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.Callback,
     FoodAdapter.ItemClickListener {
 
     private lateinit var binding: ActivityAddBinding
@@ -88,7 +88,7 @@ class AddActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.C
                     return
 
                 binding.progressIndicator.visibility = View.VISIBLE
-                Thread(ProductsByQuery(s.toString(), this@AddActivity)).start()
+                Thread(ProductsByQuery(s.toString(), this@AddRecordActivity)).start()
             }
         })
 
@@ -172,7 +172,7 @@ class AddActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.C
     }
 
     override fun onOpen(food: Food?) {
-        val intent = Intent(this, FoodDetailsActivity::class.java)
+        val intent = Intent(this, IngredientsDetailsActivity::class.java)
         intent.putExtra("food",Gson().toJson(food))
         startActivity(intent)
     }

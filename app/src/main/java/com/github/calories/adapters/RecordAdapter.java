@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.calories.R;
-import com.github.calories.activities.FoodDetailsActivity;
+import com.github.calories.activities.IngredientsDetailsActivity;
 import com.github.calories.databinding.RowRecordBinding;
 import com.github.calories.models.Food;
 import com.github.calories.models.Record;
@@ -19,7 +19,6 @@ import com.github.calories.utils.UtilsTime;
 import com.google.gson.Gson;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -130,7 +129,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
 
         @Override
         public void onOpen(Food food) {
-            Intent intent = new Intent(mInflater.getContext(), FoodDetailsActivity.class);
+            Intent intent = new Intent(mInflater.getContext(), IngredientsDetailsActivity.class);
             intent.putExtra("food",new Gson().toJson(food));
             mInflater.getContext().startActivity(intent);
         }

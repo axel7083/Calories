@@ -4,7 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -12,12 +14,33 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Digestion">
-        <activity android:name="com.github.calories.activities.HistoryActivity" android:screenOrientation="portrait" />
-        <activity android:name="com.github.calories.activities.DayDetailsActivity" android:screenOrientation="portrait" />
-        <activity android:name="com.github.calories.activities.FoodDetailsActivity" android:screenOrientation="portrait" />
-        <activity android:name="com.github.calories.activities.AddActivity" android:screenOrientation="portrait" />
-        <activity android:name="com.github.calories.activities.ScannerActivity" android:screenOrientation="portrait"/>
-        <activity android:name="com.github.calories.activities.MainActivity" android:screenOrientation="portrait">
+        <activity
+            android:name=".activities.CreateWorkoutActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activities.CreateExerciseActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activities.HistoryActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.CroppingActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.DayDetailsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.IngredientsDetailsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.AddRecordActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.ScannerActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

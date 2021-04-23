@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    app:cardBackgroundColor="@color/colorPrimaryDark"
+    app:cardBackgroundColor="@color/colorPrimary"
     app:cardCornerRadius="25dp"
     app:cardMaxElevation="1dp">
 
@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <TextView
+            android:id="@+id/title"
             android:text="Current weight"
             android:textSize="20dp"
             android:textColor="@color/textColorSecondary"
@@ -31,7 +32,7 @@
             <EditText
                 android:hint="Type here"
                 android:textStyle="bold"
-                android:textColor="@color/arsenic"
+                android:textColor="@color/textColorPrimary"
                 android:textSize="20dp"
                 android:id="@+id/weight_value"
                 android:backgroundTint="@color/blue"
@@ -41,12 +42,14 @@
                 android:layout_height="wrap_content"/>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/unitCV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/blue"
                 app:cardCornerRadius="25dp">
                 <TextView
+                    android:id="@+id/unit"
                     android:paddingHorizontal="20dp"
                     android:paddingVertical="10dp"
                     android:layout_gravity="center"

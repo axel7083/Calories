@@ -9,11 +9,10 @@ import com.github.calories.databinding.ActivityIngDetailsBinding
 import com.github.calories.models.Food
 import com.google.gson.Gson
 
-class FoodDetailsActivity : AppCompatActivity() {
+class IngredientsDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityIngDetailsBinding
 
-    lateinit var db: DatabaseHelper
     lateinit var food: Food
     lateinit var adapter: IngredientAdapter
 

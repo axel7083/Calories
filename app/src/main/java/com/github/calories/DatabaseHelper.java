@@ -5,15 +5,26 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
 import android.util.Log;
 
 
+import com.github.calories.models.Category;
+import com.github.calories.models.Exercise;
 import com.github.calories.models.Food;
 import com.github.calories.models.Ingredient;
 import com.github.calories.models.RawValues;
 import com.github.calories.models.Record;
 import com.github.calories.models.Stats;
+import com.github.calories.models.Workout;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +39,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //database version
     public static final int DATABASE_VERSION = 1;
 
+    // Table for foods
     public static final String TABLE_RECORD = "tbl_record";
     public static final String TABLE_FOOD = "tbl_food";
     public static final String TABLE_INGREDIENTS = "tbl_ingredients";
     public static final String TABLE_R_F = "tbl_r_f";
     public static final String TABLE_F_I = "tbl_f_i";
+
+    // Table for weight
     public static final String TABLE_WEIGHT = "tbl_weight";
+
+
+    // Table for workout
+    public static final String TABLE_CATEGORY = "tbl_category";
+    public static final String TABLE_EXERCISE = "tbl_exercise";
+    public static final String TABLE_E_C = "tbl_e_c";
+    public static final String TABLE_WORKOUT = "tbl_workout";
+    public static final String TABLE_W_E = "tbl_w_e";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -79,6 +101,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Date TEXT PRIMARY KEY, " +
                 "value REAL NOT NULL)";
         db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_CATEGORY + "(" +
+                "ID INTEGER PRIMARY KEY, " +
+                "Name TEXT NOT NULL)";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_EXERCISE + "(" +
+                "ID INTEGER PRIMARY KEY, " +
+                "Name TEXT NOT NULL)";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_WORKOUT + "(" +
+                "ID INTEGER PRIMARY KEY, " +
+                "Name TEXT NOT NULL)";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_E_C + "(" +
+                "ID_Exercise INTEGER NOT NULL, " +
+                "ID_Category INTEGER NOT NULL, " +
+                "PRIMARY KEY ( ID_Exercise, ID_Category))";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_W_E + "(" +
+                "ID_Workout INTEGER NOT NULL, " +
+                "ID_Exercise INTEGER NOT NULL, " +
+                "PRIMARY KEY ( ID_Workout, ID_Exercise))";
+        db.execSQL(query);
     }
 
     //upgrading database
@@ -88,7 +137,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FOOD);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_INGREDIENTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_R_F);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_F_I);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WEIGHT);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORY);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXERCISE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WORKOUT);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_E_C);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_W_E);
         onCreate(db);
     }
 
@@ -183,7 +237,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return map;
     }
-
 
     public Food getFood(String food_id) {
         ArrayList<Ingredient> ingredients = new ArrayList<>();
@@ -399,6 +452,124 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         cursor.close();
         return map;
+    }
+
+    public Category addCategory(Category category) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values =  new ContentValues();
+        values.put("Name", category.getName());
+        category.setId(db.insert(TABLE_CATEGORY, null , values));
+
+        db.close();
+        return category;
+    }
+
+    public List<Category> getCategories() {
+        List<Category> categories = new ArrayList<>();
+        String select_query = "SELECT * FROM " + TABLE_CATEGORY ;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                categories.add(new Category(cursor.getString(1),cursor.getLong(0)));
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+        return categories;
+    }
+
+    public Exercise addExercise(Exercise exercise) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues exerciseValues =  new ContentValues();
+        exerciseValues.put("Name", exercise.getName());
+        exercise.setId(db.insert(TABLE_EXERCISE, null , exerciseValues));
+
+        // Insert in db the categories selected for this exercise
+        if(exercise.getCategories() != null)
+            for(Category category: exercise.getCategories()) {
+                ContentValues e_c_values =  new ContentValues();
+                e_c_values.put("ID_Exercise",exercise.getId());
+                e_c_values.put("ID_Category",category.getId());
+                db.insert(TABLE_E_C,null,e_c_values);
+            }
+
+        db.close();
+        return exercise;
+    }
+
+    public Workout addWorkout(Workout workout) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues workoutValues =  new ContentValues();
+        workoutValues.put("Name", workout.getName());
+        workout.setId(db.insert(TABLE_WORKOUT, null , workoutValues));
+
+        // Insert in db the categories selected for this exercise
+        if(workout.getExercises() != null)
+            for(Exercise exercise: workout.getExercises()) {
+                ContentValues w_e_values =  new ContentValues();
+                w_e_values.put("ID_Exercise",exercise.getId());
+                w_e_values.put("ID_Workout",workout.getId());
+                db.insert(TABLE_W_E,null,w_e_values);
+            }
+
+        db.close();
+        return workout;
+    }
+
+    public List<Exercise> getExercises() {
+        List<Exercise> exercises = new ArrayList<>();
+
+        String select_query = "SELECT * FROM tbl_exercise INNER JOIN tbl_e_c ON tbl_exercise.ID = tbl_e_c.ID_Exercise INNER JOIN tbl_category ON tbl_category.ID = tbl_e_c.ID_Category ";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        long currentID = -1;
+        Exercise buffer = null;
+        if (cursor.moveToFirst()) {
+            do {
+                if(currentID !=  cursor.getLong(0)) {
+                    if(buffer != null)
+                        exercises.add(buffer);
+
+                    buffer = new Exercise();
+                    buffer.setId(cursor.getLong(0));
+                    buffer.setName(cursor.getString(1));
+                    currentID = buffer.getId();
+                }
+                else
+                {
+                    buffer.addCategory(new Category(cursor.getString(5),cursor.getLong(3)));
+                }
+
+            }while (cursor.moveToNext());
+            if(buffer != null)
+                exercises.add(buffer);
+        }
+        cursor.close();
+        return exercises;
+    }
+
+    // Copy the database from assets
+    public static void copyDataBase(Context context) throws IOException {
+
+        File DB_FILE = context.getDatabasePath(DATABASE_NAME);
+
+        InputStream mInput = context.getAssets().open(DATABASE_NAME);
+        OutputStream mOutput = new FileOutputStream(DB_FILE);
+        byte[] mBuffer = new byte[1024];
+        int mLength;
+        while ((mLength = mInput.read(mBuffer)) > 0) {
+            mOutput.write(mBuffer, 0, mLength);
+        }
+        mOutput.flush();
+        mOutput.close();
+        mInput.close();
     }
 
 

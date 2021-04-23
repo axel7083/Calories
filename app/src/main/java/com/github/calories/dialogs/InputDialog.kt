@@ -6,26 +6,35 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.View.GONE
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
-import com.github.calories.databinding.DialogWeightBinding
+import com.github.calories.databinding.DialogInputBinding
 
-class WeightDialog(private val activity: Activity,private val callback: Callback) : Dialog(activity!!), View.OnClickListener {
+class InputDialog(private val activity: Activity, private val callback: (String) -> Unit, val title: String, val inputType: Int, private val unit: String? = null) : Dialog(activity), View.OnClickListener {
 
-    private lateinit var binding: DialogWeightBinding
+    private lateinit var binding: DialogInputBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
 
-        binding = DialogWeightBinding.inflate(layoutInflater)
+        binding = DialogInputBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.btnSave.setOnClickListener {
-            callback.addWeight(binding.weightValue.text.toString().toFloat())
+            callback(binding.weightValue.text.toString())
             dismiss()
         }
 
+        binding.title.text = title
+
+        if(unit == null)
+            binding.unitCV.visibility = GONE
+        else
+            binding.unit.text = unit
+
+        binding.weightValue.inputType= inputType
         binding.weightValue.requestFocus()
         val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
@@ -40,10 +49,6 @@ class WeightDialog(private val activity: Activity,private val callback: Callback
         imm.hideSoftInputFromWindow(binding.weightValue.windowToken, 0)
 
         super.dismiss()
-    }
-
-    interface Callback {
-        fun addWeight(weight: Float)
     }
 
     companion object {

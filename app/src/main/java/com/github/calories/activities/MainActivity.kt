@@ -4,8 +4,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Environment
+import android.text.InputType
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,11 +17,12 @@ import com.github.calories.DatabaseHelper
 import com.github.calories.R
 import com.github.calories.animations.FabAnimation
 import com.github.calories.databinding.ActivityMainBinding
-import com.github.calories.dialogs.WeightDialog
+import com.github.calories.dialogs.InputDialog
 import com.github.calories.fragments.CalendarFragment
+import com.github.calories.fragments.GymFragment
 import com.github.calories.fragments.StatsFragment
 import com.github.calories.models.Record
-import com.github.calories.utils.ThreadUtils.Companion.execute
+import com.github.calories.utils.ThreadUtils.execute
 import com.github.calories.utils.UtilsTime
 import com.github.calories.utils.UtilsTime.DATE_PATTERN
 import com.google.gson.Gson
@@ -35,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     //lateinit var calendarFragment: CalendarFragment
 
     private lateinit var homeFragment: CalendarFragment
+    private lateinit var gymFragment: GymFragment
     private lateinit var statsFragment: StatsFragment
 
     private var isRotate = false
@@ -42,30 +47,34 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //DatabaseHelper.copyDataBase(this)
+        //finish()
+        //exitProcess(0)
+
+        Log.d(TAG, "onCreate: " + Environment.getExternalStorageDirectory())
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         db = DatabaseHelper(this)
 
         createFragments()
-        switchFragment(false)
+        switchFragment(GYM_FRAGMENT)
         setupViews()
     }
 
     private fun setupViews() {
         binding.fabFood.setOnClickListener {
-            startActivityForResult(Intent(this, AddActivity::class.java), ADD_ACTIVITY) //TODO: start activity for results
+            startActivityForResult(Intent(this, AddRecordActivity::class.java), ADD_ACTIVITY) //TODO: start activity for results
         }
 
         binding.fabScale.setOnClickListener {
-            val dialog = WeightDialog(this, (object : WeightDialog.Callback {
-                override fun addWeight(weight: Float) {
+            val dialog = InputDialog(this, { weight ->
                     val calendar: Calendar = Calendar.getInstance()
                     calendar.timeInMillis = System.currentTimeMillis()
-                    execute(this@MainActivity, { db.addWeight(UtilsTime.format(calendar.toInstant(), DATE_PATTERN), weight) }, { _ ->
+                    execute(this@MainActivity, { db.addWeight(UtilsTime.format(calendar.toInstant(), DATE_PATTERN), weight.toFloat()) }, { _ ->
                         homeFragment.refresh()
                     })
-                }
-            }))
+            },"Current weight",InputType.TYPE_NUMBER_FLAG_DECIMAL,"Kg")
 
             val window = dialog.window
             if (window != null) {
@@ -94,11 +103,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.home.setOnClickListener {
-            switchFragment(false)
+            switchFragment(HOME_FRAGMENT)
+        }
+
+        binding.gym.setOnClickListener {
+            switchFragment(GYM_FRAGMENT)
         }
 
         binding.stats.setOnClickListener {
-            switchFragment(true)
+            switchFragment(STATS_FRAGMENT)
         }
     }
 
@@ -106,29 +119,48 @@ class MainActivity : AppCompatActivity() {
     private fun createFragments() {
         Log.d(TAG, "createFragments")
         homeFragment = CalendarFragment()
+        gymFragment = GymFragment()
         statsFragment = StatsFragment()
     }
 
-    private var isStats = true
-    private fun switchFragment(isStats: Boolean) {
+    private var currentIndex = -1
+    private fun switchFragment(index : Int) {
 
-        this.isStats = isStats
+        if(currentIndex == index)
+            return
 
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        val fragment: Fragment
-        if (this.isStats) {
-            fragment = statsFragment
-            binding.home.setTextColor(getColor(R.color.grey))
-            binding.stats.setTextColor(getColor(R.color.blue))
-        } else {
-            fragment = homeFragment
-            binding.home.setTextColor(getColor(R.color.blue))
-            binding.stats.setTextColor(getColor(R.color.grey))
+
+        val fragment: Fragment? = when(index) {
+            0 -> {
+                binding.fabContainer.visibility = View.VISIBLE
+                binding.home.setTextColor(getColor(R.color.blue))
+                binding.gym.setTextColor(getColor(R.color.grey))
+                binding.stats.setTextColor(getColor(R.color.grey))
+                homeFragment
+            }
+            1-> {
+                binding.fabContainer.visibility = View.GONE
+                binding.home.setTextColor(getColor(R.color.grey))
+                binding.stats.setTextColor(getColor(R.color.grey))
+                binding.gym.setTextColor(getColor(R.color.blue))
+                gymFragment
+            }
+            2 -> {
+                binding.fabContainer.visibility = View.VISIBLE
+                binding.home.setTextColor(getColor(R.color.grey))
+                binding.stats.setTextColor(getColor(R.color.blue))
+                binding.gym.setTextColor(getColor(R.color.grey))
+                statsFragment
+            }
+            else -> null
         }
-        fragmentTransaction.replace(R.id.contentFrame, fragment)
+        fragmentTransaction.replace(R.id.contentFrame, fragment!!)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
+        currentIndex = index
+
     }
 
 
@@ -176,5 +208,8 @@ class MainActivity : AppCompatActivity() {
         const val ADD_ACTIVITY: Int = 1
         const val DAY_DETAIL_ACTIVITY: Int = 3
         const val TAG: String = "MainActivity"
+        const val HOME_FRAGMENT: Int = 0
+        const val GYM_FRAGMENT: Int = 1
+        const val STATS_FRAGMENT: Int = 2
     }
 }
