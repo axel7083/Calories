@@ -1,6 +1,7 @@
 package com.github.calories.activities
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -18,9 +19,14 @@ import com.github.calories.dialogs.WeightDialog
 import com.github.calories.fragments.CalendarFragment
 import com.github.calories.fragments.StatsFragment
 import com.github.calories.models.Record
+import com.github.calories.utils.ThreadUtils.Companion.execute
 import com.github.calories.utils.UtilsTime
+import com.github.calories.utils.UtilsTime.DATE_PATTERN
+import com.google.android.material.internal.ContextUtils.getActivity
 import com.google.gson.Gson
+import java.time.LocalDate
 import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var db: DatabaseHelper
 
     //lateinit var calendarFragment: CalendarFragment
-
 
     private lateinit var homeFragment: CalendarFragment
     private lateinit var statsFragment: StatsFragment
@@ -42,9 +47,14 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         db = DatabaseHelper(this)
 
+        createFragments()
+        switchFragment(false)
+        setupViews()
+    }
+
+    private fun setupViews() {
         binding.fabFood.setOnClickListener {
             startActivityForResult(Intent(this, AddActivity::class.java), ADD_ACTIVITY) //TODO: start activity for results
         }
@@ -54,8 +64,9 @@ class MainActivity : AppCompatActivity() {
                 override fun addWeight(weight: Float) {
                     val calendar: Calendar = Calendar.getInstance()
                     calendar.timeInMillis = System.currentTimeMillis()
-                    db.addWeight(UtilsTime.formatSQL(calendar.toInstant(), TimeZone.getDefault().id), weight)
-                    homeFragment.refresh()
+                    execute(this@MainActivity, { db.addWeight(UtilsTime.format(calendar.toInstant(), DATE_PATTERN), weight) }, { _ ->
+                        homeFragment.refresh()
+                    })
                 }
             }))
 
@@ -65,8 +76,8 @@ class MainActivity : AppCompatActivity() {
                 dialog.show()
                 window.setGravity(Gravity.BOTTOM)
                 window.setLayout(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
                 )
             }
         }
@@ -92,8 +103,6 @@ class MainActivity : AppCompatActivity() {
         binding.stats.setOnClickListener {
             switchFragment(true)
         }
-        createFragments()
-        switchFragment(false)
     }
 
 

@@ -20,7 +20,7 @@ class ProductByID(val id: String, private val callback: Callback): Runnable {
 
         val product: JSONObject = json.getJSONObject("product")
 
-        callback.finish(
+        callback.onProductByID(
                 UtilsParsing.extractFood(product)
         )
     }
@@ -30,6 +30,6 @@ class ProductByID(val id: String, private val callback: Callback): Runnable {
     }
 
     interface Callback {
-        fun finish(food: Food)
+        fun onProductByID(food: Food)
     }
 }

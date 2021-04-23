@@ -17,12 +17,16 @@ import com.github.calories.calendar.DayViewContainer
 import com.github.calories.calendar.MonthViewContainer
 import com.github.calories.databinding.FragmentCalendarBinding
 import com.github.calories.models.RawValues
+import com.github.calories.utils.ThreadUtils
+import com.github.calories.utils.UtilsTime
 import com.kizitonwose.calendarview.model.CalendarDay
 import com.kizitonwose.calendarview.model.CalendarMonth
 import com.kizitonwose.calendarview.model.DayOwner
 import com.kizitonwose.calendarview.ui.DayBinder
 import com.kizitonwose.calendarview.ui.MonthHeaderFooterBinder
+import com.kizitonwose.calendarview.utils.yearMonth
 import java.time.LocalDate
+import java.time.Month
 import java.time.YearMonth
 import java.time.temporal.WeekFields
 import java.util.*
@@ -32,19 +36,22 @@ class CalendarFragment : Fragment() {
 
     private lateinit var binding: FragmentCalendarBinding
     private lateinit var db: DatabaseHelper
-    private lateinit var energyMap: HashMap<String, RawValues>
-    private lateinit var weightMap: HashMap<String, Float>
-    private var currentMonth: CalendarMonth? = null
+    private var energyMap: HashMap<String, RawValues>? = null
+    private var weightMap: HashMap<String, Float>? = null
+    private var monthLoaded : HashMap<Int, Boolean> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = DatabaseHelper(context)
+
+        val now = LocalDate.now()
+        monthLoaded[now.monthValue] = true
     }
 
     fun refresh() {
-        //map = db.energyPerDay //TODO: fix that
-        fetchData()
-        binding.calendarView.notifyCalendarChanged()
+        fetchData {
+            binding.calendarView.notifyCalendarChanged()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -55,28 +62,30 @@ class CalendarFragment : Fragment() {
         return binding.root
     }
 
-    private fun fetchData() {
+    private fun fetchData(done: () -> Unit) {
+        Log.d(TAG, "fetchData")
         val now = LocalDate.now()
         val start = now.withDayOfMonth(1).toString()
         val end = now.withDayOfMonth(now.lengthOfMonth()).toString()
-        energyMap = db.getEnergyPerDay(start,end)
-        weightMap = db.getWeights(start,end)
+
+        ThreadUtils.execute(requireActivity(), {arrayOf(db.getEnergyPerDay(start,end),db.getWeights(start,end)) }, { array ->
+            this.energyMap = (array as Array<*>)[0] as HashMap<String, RawValues>
+            this.weightMap = ((array as Array<*>)[1] as HashMap<String, Float>)
+            done()
+        })
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        fetchData()
-
+    private fun setupCalendar()
+    {
         binding.calendarView.dayBinder = object : DayBinder<DayViewContainer> {
             override fun create(view: View) = DayViewContainer(view)
             override fun bind(container: DayViewContainer, day: CalendarDay) {
                 // Log.d(TAG, "bind: ${day.date.toString()}")
                 container.dayValue.text = day.date.dayOfMonth.toString()
 
-                if(energyMap.contains(day.date.toString())) {
+                if(energyMap?.contains(day.date.toString()) == true) {
                     container.calendarDayEnergyCard.visibility = View.VISIBLE
-                    container.dayEnergy.text = String.format("%d", energyMap[day.date.toString()]!!.energy)
+                    container.dayEnergy.text = String.format("%d", energyMap!![day.date.toString()]!!.energy)
                     // On click
                     container.dayLayout.setOnClickListener {
                         // Log.d(TAG, "bind: Clicked ${day.date.toString()}")
@@ -90,9 +99,9 @@ class CalendarFragment : Fragment() {
                     container.dayLayout.setOnClickListener(null)
                 }
 
-                if(weightMap.contains(day.date.toString())) {
+                if(weightMap?.contains(day.date.toString()) == true) {
                     container.calendarDayWeightCard.visibility = View.VISIBLE
-                    container.dayWeight.text = String.format("%.1f", weightMap[day.date.toString()]!!)
+                    container.dayWeight.text = String.format("%.1f", weightMap!![day.date.toString()]!!)
                 }
                 else {
                     container.calendarDayWeightCard.visibility = View.GONE
@@ -103,18 +112,21 @@ class CalendarFragment : Fragment() {
                 } else {
                     container.dayValue.setTextColor(Color.GRAY)
                 }
-
-
             }
         }
         binding.calendarView.monthScrollListener = { month : CalendarMonth ->
+            Log.d(TAG, "monthScrollListener: ${month.year}/${month.month}")
 
-            if(month != currentMonth) {
-                Log.d(TAG, "monthScrollListener: ${month.year}/${month.month}")
+            val b = monthLoaded[month.month]
+            if(b == false || b == null) {
+
                 val start = LocalDate.of(month.year, month.month, 1)
-                energyMap.putAll(db.getEnergyPerDay(start.toString(),start.withDayOfMonth(start.lengthOfMonth()).toString()))
-                binding.calendarView.notifyCalendarChanged()
-                currentMonth = month
+                ThreadUtils.execute(requireActivity(), { db.getEnergyPerDay(start.toString(),start.withDayOfMonth(start.lengthOfMonth()).toString()) }, { data ->
+                    energyMap!!.putAll(data as Map<out String, RawValues>)
+                    binding.calendarView.notifyCalendarChanged()
+                })
+
+                monthLoaded[month.month] = true
             }
         }
 
@@ -133,6 +145,15 @@ class CalendarFragment : Fragment() {
         binding.calendarView.setup(firstMonth, currentMonth, firstDayOfWeek)
         binding.calendarView.scrollToMonth(currentMonth)
 
+        if(energyMap == null) {
+            refresh()
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupCalendar()
     }
 
     companion object {

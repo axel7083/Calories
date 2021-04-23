@@ -50,6 +50,11 @@ class AddActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.C
         }
 
         binding.btnSave.setOnClickListener {
+            if(foodAdapter.data == null || foodAdapter.data.isEmpty()) {
+                Toast.makeText(this,"Nothing selected",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val intent = Intent()
             record.foods = foodAdapter.data
             intent.putExtra("record", Gson().toJson(record))
@@ -131,7 +136,7 @@ class AddActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.C
         }
     }
 
-    override fun finish(food: Food) {
+    override fun onProductByID(food: Food) {
         Log.d("MainActivity", "FOOD: $food")
 
         // try to touch View of UI thread
