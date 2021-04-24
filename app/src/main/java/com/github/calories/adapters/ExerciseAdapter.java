@@ -1,9 +1,12 @@
 package com.github.calories.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -13,9 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.calories.R;
-import com.github.calories.databinding.RowCategoryBinding;
 import com.github.calories.databinding.RowExerciseBinding;
-import com.github.calories.models.Category;
 import com.github.calories.models.Exercise;
 
 import java.util.ArrayList;
@@ -92,6 +93,14 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
         holder.cvContainer.setLayoutParams(params);
         holder.imageContainer.setImageBitmap(mData.get(position).getImage());
 
+        GradientDrawable border = new GradientDrawable();
+
+        if(selected.containsKey(mData.get(position)) && selected.get(mData.get(position)))
+            border.setColor(ContextCompat.getColor(mInflater.getContext(),R.color.colorAccent));
+        else
+            border.setColor(Color.TRANSPARENT);
+
+        holder.flContainer.setBackground(border);
     }
 
     // total number of rows
@@ -102,10 +111,11 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
 
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder /*implements View.OnClickListener*/ {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener /*implements View.OnClickListener*/ {
         TextView title;
         ImageView imageContainer;
         CardView cvContainer;
+        FrameLayout flContainer;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -113,8 +123,27 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
             title = RowExerciseBinding.bind(itemView).title;
             imageContainer = RowExerciseBinding.bind(itemView).imageContainer;
             cvContainer = RowExerciseBinding.bind(itemView).cvContainer;
+            flContainer = RowExerciseBinding.bind(itemView).clContainer;
             //layout = RowExerciseBinding.bind(itemView).layout;
-            //layout.setOnClickListener(this);
+            cvContainer.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+
+            if(selected.containsKey(mData.get(getBindingAdapterPosition())))
+            {
+                if(selected.get(mData.get(getBindingAdapterPosition())))
+                    selected.put(mData.get(getBindingAdapterPosition()),false);
+                else
+                    selected.put(mData.get(getBindingAdapterPosition()),true);
+            }
+            else
+            {
+                selected.put(mData.get(getBindingAdapterPosition()),true);
+            }
+            notifyDataSetChanged();
+
         }
 
         /*@Override

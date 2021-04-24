@@ -118,6 +118,10 @@ class CreateExerciseActivity : AppCompatActivity() {
             binding.recoverTimeLayout.visibility = if(checked) VISIBLE else GONE
         }
 
+        binding.timedExerciseSwitch.setOnCheckedChangeListener { _, checked ->
+            binding.timedValueLayout.visibility = if(checked) VISIBLE else GONE
+        }
+
         binding.btnSave.setOnClickListener {
             val name = binding.nameEdit.text.toString()
             if(name.isEmpty()) {
@@ -125,8 +129,17 @@ class CreateExerciseActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            if(exercise.image == null) {
+                Toast.makeText(this@CreateExerciseActivity,"You need to put an image.",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             if(binding.multipleRepSwitch.isChecked) {
                 exercise.recoverTime = binding.recoverTime.text.toString().toInt()
+            }
+
+            if(binding.timedExerciseSwitch.isChecked) {
+                exercise.time = binding.timedValue.text.toString().toInt()
             }
 
             exercise.name = name

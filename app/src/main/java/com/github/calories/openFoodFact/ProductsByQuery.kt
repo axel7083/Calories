@@ -8,7 +8,9 @@ import org.json.JSONObject
 import java.net.URL
 
 
-class ProductsByQuery(private val query: String, private val callback: Callback): Runnable {
+class ProductsByQuery(private val query: String, limit: Int, private val callback: Callback): Runnable {
+
+    private val URL = "https://world.openfoodfacts.org/cgi/search.pl?json=1&page_size=$limit&search_terms="
 
     override fun run() {
         val input: String = URL(URL + query).readText()
@@ -32,9 +34,6 @@ class ProductsByQuery(private val query: String, private val callback: Callback)
         callback.onProductsByQuery(foods)
     }
 
-    companion object {
-        const val URL : String = "https://world.openfoodfacts.org/cgi/search.pl?json=1&page_size=5&search_terms="
-    }
 
     interface Callback {
         fun onProductsByQuery(foods: List<Food>?)

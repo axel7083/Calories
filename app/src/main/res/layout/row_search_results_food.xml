@@ -6,12 +6,13 @@
     android:orientation="horizontal"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@android:color/transparent">
+    app:cardBackgroundColor="@color/colorPrimaryDark"
+    android:layout_marginVertical="5dp">
 
 
 
     <LinearLayout
-        android:paddingVertical="10dp"
+        android:paddingVertical="5dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -19,7 +20,8 @@
         android:clickable="true"
         android:focusable="true"
         android:background="?android:attr/selectableItemBackground"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/side_margin">
 
         <LinearLayout
             android:layout_gravity="center_vertical"
@@ -53,14 +55,17 @@
             app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="25dp"
             android:layout_marginStart="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="40dp"
+            android:layout_height="40dp">
             <ImageView
                 android:id="@+id/add_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 app:tint="@color/blue"
-                android:padding="5dp"
+                android:padding="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
                 android:src="@drawable/plus"/>
         </androidx.cardview.widget.CardView>
 

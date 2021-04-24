@@ -1,25 +1,15 @@
 package com.github.calories.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
 import com.github.calories.DatabaseHelper
-import com.github.calories.activities.CreateExerciseActivity
-import com.github.calories.activities.CreateWorkoutActivity
-import com.github.calories.activities.HistoryActivity
-import com.github.calories.activities.MainActivity.Companion.CREATE_WORKOUT_ACTIVITY
-import com.github.calories.adapters.WorkoutAdapter
-import com.github.calories.databinding.FragmentGymBinding
 import com.github.calories.databinding.FragmentStatsBinding
-import com.github.calories.models.Food
 import com.github.calories.models.RawValues
 import com.github.calories.models.Stats
-import com.github.calories.models.Workout
 import com.github.calories.utils.CustomBarChartRender
 import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime.*
@@ -36,16 +26,14 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class GymFragment : Fragment() {
+class ExerciseFragment : Fragment() {
 
-    private lateinit var binding: FragmentGymBinding
+    private lateinit var binding: FragmentStatsBinding
     private lateinit var db: DatabaseHelper
-    private lateinit var workoutAdapter: WorkoutAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = DatabaseHelper(context)
-        workoutAdapter = WorkoutAdapter(context)
     }
 
     override fun onCreateView(
@@ -54,38 +42,18 @@ class GymFragment : Fragment() {
     ): View {
 
         // Inflate the layout for this fragment
-        binding = FragmentGymBinding.inflate(inflater, container, false)
+        binding = FragmentStatsBinding.inflate(inflater, container, false)
         // Inflate the layout for this fragment
         return binding.root    }
 
-    fun refresh() {
-        fetchData()
-    }
 
-    private fun fetchData() {
-        ThreadUtils.execute(requireActivity(), {
-            db.workouts
-        }, { workouts ->
-            workoutAdapter.updateData(workouts as List<Workout>)
-            workoutAdapter.notifyDataSetChanged()
-        })
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.workouts.layoutManager = GridLayoutManager(activity,2)
-        binding.workouts.setHasFixedSize(false)
-        binding.workouts.adapter = workoutAdapter
-
-        binding.btnCreate.setOnClickListener {
-            requireActivity().startActivityForResult(Intent(context, CreateWorkoutActivity::class.java), CREATE_WORKOUT_ACTIVITY)
-        }
-
-        fetchData()
     }
 
     companion object {
-        private const val TAG: String = "GymFragment"
+        private const val TAG: String = "StatsFragment"
     }
 }

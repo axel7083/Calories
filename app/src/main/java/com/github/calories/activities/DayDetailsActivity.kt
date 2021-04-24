@@ -106,13 +106,13 @@ class DayDetailsActivity : AppCompatActivity() {
 
         for(record in records)  {
             for(food in record.foods!!) {
-                fat += food.fat100g*food.quantity/100
-                fiber += food.fiber100g*food.quantity/100
-                salt += food.salt100g*food.quantity/100
-                proteins += food.proteins100g*food.quantity/100
-                saturatedFat += food.saturatedFat100g*food.quantity/100
-                sodium += food.sodium100g*food.quantity/100
-                sugars += food.sugars100g*food.quantity/100
+                fat += food.fat100g!!*food.quantity/100
+                fiber += food.fiber100g!!*food.quantity/100
+                salt += food.salt100g!!*food.quantity/100
+                proteins += food.proteins100g!!*food.quantity/100
+                saturatedFat += food.saturatedFat100g!!*food.quantity/100
+                sodium += food.sodium100g!!*food.quantity/100
+                sugars += food.sugars100g!!*food.quantity/100
             }
         }
 

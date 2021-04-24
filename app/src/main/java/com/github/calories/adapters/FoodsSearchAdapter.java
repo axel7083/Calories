@@ -55,8 +55,15 @@ public class FoodsSearchAdapter extends RecyclerView.Adapter<FoodsSearchAdapter.
 
         StringBuilder builder= new StringBuilder();
 
-        for(Ingredient ingredient : mData.get(position).getIngredients()) {
-            builder.append(ingredient.getName()).append(" (").append(String.format(Locale.getDefault(),"%.1f",ingredient.getPercentEstimate())).append("%), ");
+        if(mData.get(position).getIngredients() != null) {
+            holder.description.setVisibility(View.VISIBLE);
+            for (Ingredient ingredient : mData.get(position).getIngredients()) {
+                builder.append(ingredient.getName()).append(" (").append(String.format(Locale.getDefault(), "%.1f", ingredient.getPercentEstimate())).append("%), ");
+            }
+        }
+        else
+        {
+            holder.description.setVisibility(View.GONE);
         }
 
         if(builder.length() > 2)

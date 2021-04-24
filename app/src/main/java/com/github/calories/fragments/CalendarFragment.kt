@@ -140,7 +140,7 @@ class CalendarFragment : Fragment() {
         }
 
         val currentMonth = YearMonth.now()
-        val firstMonth = currentMonth.minusMonths(10)
+        val firstMonth = currentMonth.minusMonths(2)
         val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
         binding.calendarView.setup(firstMonth, currentMonth, firstDayOfWeek)
         binding.calendarView.scrollToMonth(currentMonth)

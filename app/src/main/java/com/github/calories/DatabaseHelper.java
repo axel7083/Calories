@@ -110,6 +110,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         query = "CREATE TABLE " + TABLE_EXERCISE + "(" +
                 "ID INTEGER PRIMARY KEY, " +
                 "RecoverTime INTEGER, " +
+                "Time INTEGER, " +
                 "Name TEXT NOT NULL)";
         db.execSQL(query);
 
@@ -171,18 +172,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             sqLiteDatabase.insert(TABLE_R_F, null , values_R_F);
 
-            for(Ingredient ingredient: food.getIngredients()) {
 
-                sqLiteDatabase.insert(TABLE_INGREDIENTS, null , extractValuesIngredient(ingredient));
+            if(food.getIngredients() != null)
+                for(Ingredient ingredient: food.getIngredients()) {
 
-                // insert in F_I
-                ContentValues values_F_I = new ContentValues();
-                values_F_I.put("ID_Food",food_id);
-                values_F_I.put("ID_Ingredient",ingredient.getId());
-                values_F_I.put("percent_estimate",ingredient.getPercentEstimate());
+                    sqLiteDatabase.insert(TABLE_INGREDIENTS, null , extractValuesIngredient(ingredient));
 
-                sqLiteDatabase.insert(TABLE_F_I, null , values_F_I);
-            }
+                    // insert in F_I
+                    ContentValues values_F_I = new ContentValues();
+                    values_F_I.put("ID_Food",food_id);
+                    values_F_I.put("ID_Ingredient",ingredient.getId());
+                    values_F_I.put("percent_estimate",ingredient.getPercentEstimate());
+
+                    sqLiteDatabase.insert(TABLE_F_I, null , values_F_I);
+                }
 
         }
 
@@ -239,8 +242,70 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return map;
     }
 
+    public ArrayList<Food> getMostEatenFood(int limit) {
+        ArrayList<Food> foods = new ArrayList<>();
+
+        String select_query = "SELECT ID_Food,tbl_food.Name,COUNT(tbl_r_f.ID_Food) as c FROM tbl_r_f INNER JOIN tbl_food ON  tbl_r_f.ID_Food = tbl_food.ID GROUP BY tbl_r_f.ID_Food ORDER BY c DESC LIMIT " + limit;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                if(cursor.getString(0) != null) {
+                    foods.add(new Food(cursor.getString(0),
+                            cursor.getString(1),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null));
+                }
+
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+        return foods;
+    }
+
+
+    public List<Food> getFoodByQuery(String query) {
+        /*SELECT * FROM mytable
+WHERE column1 LIKE '%word1%'*/
+
+        ArrayList<Food> foods = new ArrayList<>();
+
+        String select_query = "SELECT * FROM " + TABLE_FOOD + " WHERE Name LIKE '%" + query +"%'";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                if(cursor.getString(0) != null) {
+                    foods.add(new Food(cursor.getString(0),
+                            cursor.getString(1),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null));
+                }
+
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+        return foods;
+
+    }
+
     public Food getFood(String food_id) {
-        ArrayList<Ingredient> ingredients = new ArrayList<>();
         String select_query = "SELECT * FROM "+ TABLE_FOOD +" LEFT JOIN " + TABLE_F_I +" ON "+ TABLE_F_I +".ID_Food = "+ TABLE_FOOD +".ID LEFT JOIN "+ TABLE_INGREDIENTS +" ON "+ TABLE_F_I +".ID_Ingredient = "+ TABLE_INGREDIENTS +".ID WHERE "+ TABLE_FOOD +".ID = " + food_id;
 
         Log.d(TAG, "getFood: (" + select_query + ")");
@@ -249,6 +314,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Food food = null;
         boolean isFirst = true;
+        ArrayList<Ingredient> ingredients = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
                 if(cursor.getString(0) != null) {
@@ -408,6 +474,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+
+
+
+
+
+
     public void deleteRecords(List<String> records) {
         if(records.size() == 0)
             return;
@@ -495,6 +567,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues exerciseValues =  new ContentValues();
         exerciseValues.put("Name", exercise.getName());
         exerciseValues.put("RecoverTime", exercise.getRecoverTime());
+        exerciseValues.put("Time", exercise.getTime());
         exercise.setId(db.insert(TABLE_EXERCISE, null , exerciseValues));
 
         // Insert in db the categories selected for this exercise
@@ -528,6 +601,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.close();
         return workout;
+    }
+
+    public List<Workout> getWorkouts() {
+        List<Workout> workouts = new ArrayList<>();
+
+        String select_query = "SELECT * FROM " + TABLE_WORKOUT ;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                workouts.add(new Workout(cursor.getLong(0),cursor.getString(1), null));
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return workouts;
     }
 
     public List<Exercise> getExercises() {

@@ -7,7 +7,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 
-class Exercise(var id: Long? = null, var name: String? = null, var categories: List<Category>? = null, var recoverTime: Int? = null) {
+class Exercise(var id: Long? = null, var name: String? = null, var categories: List<Category>? = null, var recoverTime: Int? = null, var time: Int? = null) {
 
     var image: Bitmap? = null
 

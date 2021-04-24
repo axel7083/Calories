@@ -51,8 +51,6 @@ class MainActivity : AppCompatActivity() {
         //finish()
         //exitProcess(0)
 
-        Log.d(TAG, "onCreate: " + Environment.getExternalStorageDirectory())
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         db = DatabaseHelper(this)
@@ -177,19 +175,23 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d(TAG, "onActivityResult $resultCode | $requestCode")
 
-        if(requestCode == ADD_ACTIVITY) {
-            if (resultCode == RESULT_CANCELED || data == null)
-                return
-            else
-            {
+        if (resultCode == RESULT_CANCELED)
+            return
+
+        when(requestCode) {
+            ADD_ACTIVITY -> {
+                if(data == null)
+                    return
                 val record = Gson().fromJson(data.getStringExtra("record"), Record::class.java)
                 Log.d(TAG, "onActivityResult: adding record ${db.addRecord(record)}")
                 homeFragment.refresh()
             }
-        }
-        else if(requestCode == DAY_DETAIL_ACTIVITY && resultCode == RESULT_OK) {
-            Log.d(TAG, "onActivityResult: Received DAY_DETAIL_ACTIVITY")
-            homeFragment.refresh()
+            DAY_DETAIL_ACTIVITY -> {
+                homeFragment.refresh()
+            }
+            CREATE_WORKOUT_ACTIVITY-> {
+                gymFragment.refresh()
+            }
         }
     }
 
@@ -207,6 +209,7 @@ class MainActivity : AppCompatActivity() {
         const val SCAN_ACTIVITY: Int = 2
         const val ADD_ACTIVITY: Int = 1
         const val DAY_DETAIL_ACTIVITY: Int = 3
+        const val CREATE_WORKOUT_ACTIVITY: Int = 4
         const val TAG: String = "MainActivity"
         const val HOME_FRAGMENT: Int = 0
         const val GYM_FRAGMENT: Int = 1

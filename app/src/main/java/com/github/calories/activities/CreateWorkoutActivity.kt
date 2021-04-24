@@ -62,26 +62,6 @@ class CreateWorkoutActivity : AppCompatActivity() {
         binding.exerciseRV.adapter = adapter
         binding.exerciseRV.layoutManager = GridLayoutManager(this, 2)
 
-        /*binding.addCategory.setOnClickListener {
-            val dialog = InputDialog(this, { categoryName ->
-                ThreadUtils.execute(this@CreateWorkoutActivity, {db.addCategory(Category(categoryName,null)) }, { category ->
-                    list = list.plus(category as Category)
-                    adapter.updateData(list)
-                    adapter.notifyDataSetChanged()
-                })
-            },"Create a category", InputType.TYPE_CLASS_TEXT)
-            val window = dialog.window
-            if (window != null) {
-                window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                dialog.show()
-                window.setGravity(Gravity.BOTTOM)
-                window.setLayout(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-        }*/
-
         // Fetching data
         ThreadUtils.execute(this@CreateWorkoutActivity, { db.exercises }, { exercises ->
 
@@ -113,14 +93,10 @@ class CreateWorkoutActivity : AppCompatActivity() {
             workout.name = name
             workout.exercises = adapter.selected
 
-            ThreadUtils.execute(this@CreateWorkoutActivity, { db.addWorkout(workout) }, { workout ->
-
-                /*Log.d(TAG, "onCreate: Saving to storage success: $b")
-
-                val returnIntent = Intent()
-                returnIntent.putExtra("exercise", Gson().toJson(exercise))
-                setResult(RESULT_OK, returnIntent)
-                finish()*/
+            ThreadUtils.execute(this@CreateWorkoutActivity, { db.addWorkout(workout) }, {
+                Log.d(TAG, "onCreate: Saving to storage success")
+                setResult(RESULT_OK)
+                finish()
             })
 
         }

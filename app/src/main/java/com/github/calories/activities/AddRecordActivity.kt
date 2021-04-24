@@ -17,23 +17,21 @@ import com.github.calories.databinding.ActivityAddBinding
 import com.github.calories.models.Food
 import com.github.calories.models.Record
 import com.github.calories.openFoodFact.ProductsByQuery
+import com.github.calories.utils.ThreadUtils
 import com.google.gson.Gson
 import java.util.*
 
-class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQuery.Callback,
+class AddRecordActivity : AppCompatActivity(), ProductByID.Callback,
     FoodAdapter.ItemClickListener {
 
     private lateinit var binding: ActivityAddBinding
     private lateinit var foodAdapter: FoodAdapter
-    private lateinit var foodsSearchAdapter: FoodsSearchAdapter
-
 
     private lateinit var record: Record
     private var ignoreResults : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -67,34 +65,15 @@ class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQ
             finish()
         }
 
-
-        binding.searchBar.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {}
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                Log.d(TAG, "onTextChanged: $s")
-
-                if(s== null || s.isEmpty()) {
-                    foodsSearchAdapter.clear()
-                    ignoreResults = true
-                    return
-                }
-                else
-                    ignoreResults = false
-
-                if(s.length < 3)
-                    return
-
-                binding.progressIndicator.visibility = View.VISIBLE
-                Thread(ProductsByQuery(s.toString(), this@AddRecordActivity)).start()
-            }
-        })
+        binding.searchOnline.setOnClickListener {
+            val i = Intent(this, HistoryActivity::class.java)
+            i.putExtra("isInternalSearch",false)
+            startActivityForResult(i, HISTORY_ACTIVITY)
+        }
 
         binding.statusBar.setRightIconClickListener {
             val i = Intent(this, HistoryActivity::class.java)
-            startActivity(i)
+            startActivityForResult(i, HISTORY_ACTIVITY)
         }
 
         setupAdapters()
@@ -107,31 +86,24 @@ class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQ
         foodAdapter.setClickListener(this)
         foodAdapter.updateData(record.foods)
         binding.rvFood.adapter = foodAdapter
-
-        // Setup research adapter
-        binding.rvSearchResults.layoutManager = LinearLayoutManager(this)
-        foodsSearchAdapter = FoodsSearchAdapter(this)
-        foodsSearchAdapter.setClickListener { food: Food ->
-            record.addFood(food)
-            foodAdapter.addFood(food)
-            foodAdapter.notifyDataSetChanged()
-            true
-        }
-        binding.rvSearchResults.adapter = foodsSearchAdapter
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d("AddActivity", "onActivityResult $resultCode")
 
-        if(requestCode == MainActivity.SCAN_ACTIVITY) {
-            if (resultCode == RESULT_CANCELED || data == null)
-                return
-            else
-            {
-                val number = data.getStringExtra("value")
-                Toast.makeText(this, "Value = $number", Toast.LENGTH_LONG).show()
-                Thread(ProductByID(number!!, this)).start()
+        if (resultCode == RESULT_CANCELED || data == null)
+            return
+
+        when(requestCode) {
+            MainActivity.SCAN_ACTIVITY -> {
+                    val number = data.getStringExtra("value")
+                    Toast.makeText(this, "Value = $number", Toast.LENGTH_LONG).show()
+                    Thread(ProductByID(number!!, this)).start()
+            }
+            HISTORY_ACTIVITY -> {
+                val food = data.getStringExtra("food")
+                onProductByID(Gson().fromJson(food,Food::class.java))
             }
         }
     }
@@ -145,21 +117,6 @@ class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQ
             foodAdapter.updateData(record.foods)
             foodAdapter.notifyDataSetChanged()
         }
-    }
-
-    override fun onProductsByQuery(foods: List<Food>?) {
-        if(ignoreResults)
-            return
-
-        runOnUiThread {
-            binding.progressIndicator.visibility = View.GONE
-            foodsSearchAdapter.updateData(foods)
-            foodsSearchAdapter.notifyDataSetChanged()
-        }
-    }
-
-    companion object {
-        private const val TAG: String = "AddActivity"
     }
 
     // Callback from FoodAdapter
@@ -177,5 +134,8 @@ class AddRecordActivity : AppCompatActivity(), ProductByID.Callback, ProductsByQ
         startActivity(intent)
     }
 
-
+    companion object {
+        private const val TAG: String = "AddActivity"
+        private const val HISTORY_ACTIVITY: Int = 1
+    }
 }

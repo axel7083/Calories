@@ -199,7 +199,74 @@
                         android:gravity="center_vertical"
                         android:layout_marginHorizontal="@dimen/side_margin">
                         <TextView
-                            android:text="Exercise with multiple repetitions"
+                            android:text="Timed exercise"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:textSize="18dp"
+                            android:textColor="@color/textColorPrimary"
+                            android:layout_height="wrap_content"/>
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/timedExerciseSwitch"
+                            android:layout_width="wrap_content"
+                            android:padding="0dp"
+                            android:layout_margin="0dp"
+                            android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/timedValueLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginHorizontal="@dimen/side_margin">
+                        <TextView
+                            android:text="Time in seconds"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:textSize="18dp"
+                            android:textColor="@color/textColorPrimary"
+                            android:layout_height="wrap_content"/>
+                        <EditText
+                            android:hint="60"
+                            android:textStyle="bold"
+                            android:textColor="@color/textColorPrimary"
+                            android:textSize="18dp"
+                            android:id="@+id/timedValue"
+                            android:backgroundTint="@color/blue"
+                            android:inputType="number"
+                            android:layout_width="55dp"
+                            android:layout_height="wrap_content"
+                            app:layout_constraintTop_toTopOf="parent"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="25dp"
+                app:cardBackgroundColor="@color/colorPrimary"
+                android:layout_marginTop="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginHorizontal="@dimen/side_margin">
+                        <TextView
+                            android:text="Multiple repetitions"
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:textSize="18dp"
@@ -224,7 +291,7 @@
                         android:gravity="center_vertical"
                         android:layout_marginHorizontal="@dimen/side_margin">
                         <TextView
-                            android:text="Recover time between repetitions"
+                            android:text="Recover time"
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:textSize="18dp"
@@ -246,7 +313,6 @@
 
 
             </androidx.cardview.widget.CardView>
-
 
         </LinearLayout>
 

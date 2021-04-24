@@ -16,5 +16,61 @@
         app:leftIcon="@drawable/ic_left_arrow"
         app:title="History"/>
 
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/half_round_bg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:hint="Search for food"
+                android:textStyle="bold"
+                android:textColor="@color/textColorPrimary"
+                android:textSize="20dp"
+                android:id="@+id/search_bar"
+                android:backgroundTint="@color/blue"
+                android:inputType="text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginHorizontal="@dimen/side_margin"/>
+
+            <ProgressBar
+                android:layout_gravity="center"
+                android:id="@+id/progress_indicator"
+                android:layout_width="40dp"
+                android:visibility="gone"
+                android:indeterminate="true"
+                android:layout_height="40dp"/>
+
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:text="subtitle"
+                android:layout_width="wrap_content"
+                android:textSize="15dp"
+                android:layout_marginTop="@dimen/side_margin"
+                android:textColor="@color/textColorPrimary"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/side_margin"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/foodsRV"
+                android:layout_width="match_parent"
+                tools:listitem="@layout/row_search_results_food"
+                android:nestedScrollingEnabled="false"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+
+
 
 </LinearLayout>

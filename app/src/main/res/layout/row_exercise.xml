@@ -20,25 +20,37 @@
         app:cardElevation="0dp"
         android:layout_gravity="start">
 
-        <ImageView
-            android:id="@+id/imageContainer"
-            android:background="@drawable/background_gradient"
-            android:scaleType="centerCrop"
+        <FrameLayout
+            android:id="@+id/clContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:padding="2dp"
+            android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:shadowColor="@color/black"
-            android:shadowDx="1.5"
-            android:shadowDy="1.3"
-            android:shadowRadius="1.6"
-            android:text="Name"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:textColor="@color/white" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="20dp">
+                <ImageView
+                    android:id="@+id/imageContainer"
+                    android:background="@drawable/background_gradient"
+                    android:scaleType="centerCrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:shadowColor="@android:color/black"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.3"
+                    android:shadowRadius="1.6"
+                    android:text="Name"
+                    android:textSize="20sp"
+                    android:gravity="center"
+                    android:textColor="@android:color/white" />
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
 
     </androidx.cardview.widget.CardView>
 
