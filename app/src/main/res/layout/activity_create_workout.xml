@@ -15,17 +15,31 @@
         app:leftIcon="@drawable/ic_left_arrow"
         app:title="Create a workout"/>
 
-    <LinearLayout
-        app:layout_constraintTop_toBottomOf="@id/status_bar"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/status_bar"
+        app:layout_constraintBottom_toBottomOf="parent"
         android:background="@drawable/half_round_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:layout_marginTop="10dp"
+            android:text="Settings"
+            android:layout_marginHorizontal="@dimen/side_margin"
+            android:layout_width="wrap_content"
+            android:textSize="15dp"
+            android:textColor="@color/textColorPrimary"
+            android:layout_height="wrap_content"/>
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             app:cardElevation="0dp"
             app:cardCornerRadius="25dp"
             app:cardBackgroundColor="@color/colorPrimary"
@@ -34,23 +48,60 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginHorizontal="@dimen/side_margin"
                 android:gravity="center_vertical"
-                android:paddingVertical="10dp"
-                android:layout_marginHorizontal="@dimen/side_margin">
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Recover time between exercises"
+                    android:textColor="@color/textColorPrimary"
+                    android:textSize="18dp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:padding="0dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="25dp"
+            app:cardBackgroundColor="@color/colorPrimary"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_marginHorizontal="@dimen/side_margin"
+                android:gravity="center_vertical">
                 <ImageView
                     android:src="@drawable/ic_label"
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:padding="2dp"
                     android:layout_marginEnd="10dp"
-                    app:tint="@color/colorAccent"/>
+                    app:tint="@color/colorAccent"
+                    android:gravity="center_vertical"/>
 
                 <EditText
+
                     android:hint="Workout Name"
                     android:textStyle="bold"
                     android:textColor="@color/textColorPrimary"
-                    android:textSize="22dp"
+                    android:textSize="18dp"
                     android:background="@null"
                     android:id="@+id/name_edit"
                     android:paddingVertical="3dp"
@@ -58,7 +109,7 @@
                     android:inputType="text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:layout_constraintTop_toTopOf="parent"/>
+                    android:gravity="center_vertical"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -122,7 +173,7 @@
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/categoryRV"
+                    android:id="@+id/exerciseRV"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
@@ -138,6 +189,8 @@
 
 
     </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 
     <!-- bottom bar -->

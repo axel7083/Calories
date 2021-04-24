@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.calories.DatabaseHelper
 import com.github.calories.adapters.CategoryAdapter
 import com.github.calories.databinding.ActivityCreateExerciseBinding
+import com.github.calories.dialogs.ConfirmDialog
 import com.github.calories.dialogs.InputDialog
 import com.github.calories.models.Category
 import com.github.calories.models.Exercise
@@ -59,6 +60,29 @@ class CreateExerciseActivity : AppCompatActivity() {
         }
 
         adapter = CategoryAdapter(this)
+        adapter.setOnLongClickListener { category ->
+
+            val dialog = ConfirmDialog(this, { output ->
+                if(output)
+                    ThreadUtils.execute(this@CreateExerciseActivity, {db.deleteCategory(category) }, {
+                        list = list.minus(category)
+                        adapter.deleteCategory(category)
+                        adapter.updateData(list)
+                        adapter.notifyDataSetChanged()
+                    })
+            },"Delete ${category.name}","Are you sure you want to delete this category?")
+            val window = dialog.window
+            if (window != null) {
+                window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.show()
+                window.setGravity(Gravity.CENTER)
+                window.setLayout(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+        }
         binding.categoryRV.adapter = adapter
         binding.categoryRV.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false)
 
@@ -85,15 +109,24 @@ class CreateExerciseActivity : AppCompatActivity() {
         // Fetching data
         ThreadUtils.execute(this@CreateExerciseActivity, { db.categories }, { categories ->
             list = categories as List<Category>
+            Log.d(TAG, "onCreate: list size ${list.size}")
             adapter.updateData(list)
             adapter.notifyDataSetChanged()
         })
+
+        binding.multipleRepSwitch.setOnCheckedChangeListener { _, checked ->
+            binding.recoverTimeLayout.visibility = if(checked) VISIBLE else GONE
+        }
 
         binding.btnSave.setOnClickListener {
             val name = binding.nameEdit.text.toString()
             if(name.isEmpty()) {
                 Toast.makeText(this@CreateExerciseActivity,"Name should not be empty.",Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
+            }
+
+            if(binding.multipleRepSwitch.isChecked) {
+                exercise.recoverTime = binding.recoverTime.text.toString().toInt()
             }
 
             exercise.name = name

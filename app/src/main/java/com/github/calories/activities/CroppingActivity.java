@@ -117,6 +117,10 @@ public class CroppingActivity extends Activity {
                 binding.CropImageView.setImageUriAsync(imageUri);
             }
         }
+        else
+        {
+            finish();
+        }
     }
 
     @Override

@@ -88,7 +88,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         TextView title;
         LinearLayout layout;
 
@@ -98,6 +98,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             title = RowCategoryBinding.bind(itemView).title;
             layout = RowCategoryBinding.bind(itemView).layout;
             layout.setOnClickListener(this);
+            layout.setOnLongClickListener(this);
         }
 
         @Override
@@ -113,22 +114,30 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
                 title.setTextColor(ContextCompat.getColor(mInflater.getContext(),R.color.blue));
                 selected.put(cat, true);
             }
+        }
 
+        @Override
+        public boolean onLongClick(View view) {
             if (mClickListener == null)
-                return;
+                return false;
+            mClickListener.onLongClick(mData.get(getBindingAdapterPosition()));
 
-            mClickListener.onSelect(mData.get(getBindingAdapterPosition()));
+            return false;
         }
     }
 
     // allows clicks events to be caught
-    public void setClickListener(ItemClickListener itemClickListener) {
+    public void setOnLongClickListener(ItemClickListener itemClickListener) {
         this.mClickListener = itemClickListener;
+    }
+
+    public void deleteCategory(Category category ) {
+        selected.put(category,false);
     }
 
     // parent activity will implement this method to respond to click events
     public interface ItemClickListener {
-        void onSelect(Category category);
+        void onLongClick(Category category);
     }
 
 }

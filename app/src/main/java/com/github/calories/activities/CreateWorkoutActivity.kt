@@ -59,8 +59,8 @@ class CreateWorkoutActivity : AppCompatActivity() {
         }
 
         adapter = ExerciseAdapter(this)
-        binding.categoryRV.adapter = adapter
-        binding.categoryRV.layoutManager = GridLayoutManager(this, 2)
+        binding.exerciseRV.adapter = adapter
+        binding.exerciseRV.layoutManager = GridLayoutManager(this, 2)
 
         /*binding.addCategory.setOnClickListener {
             val dialog = InputDialog(this, { categoryName ->

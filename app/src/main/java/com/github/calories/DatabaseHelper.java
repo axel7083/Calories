@@ -109,6 +109,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         query = "CREATE TABLE " + TABLE_EXERCISE + "(" +
                 "ID INTEGER PRIMARY KEY, " +
+                "RecoverTime INTEGER, " +
                 "Name TEXT NOT NULL)";
         db.execSQL(query);
 
@@ -481,11 +482,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return categories;
     }
 
+    public void deleteCategory(Category category) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_CATEGORY,"ID=" + category.getId(),null);
+        db.delete(TABLE_E_C,"ID_Category=" + category.getId(),null);
+        db.close();
+    }
+
     public Exercise addExercise(Exercise exercise) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues exerciseValues =  new ContentValues();
         exerciseValues.put("Name", exercise.getName());
+        exerciseValues.put("RecoverTime", exercise.getRecoverTime());
         exercise.setId(db.insert(TABLE_EXERCISE, null , exerciseValues));
 
         // Insert in db the categories selected for this exercise
@@ -539,12 +548,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     buffer = new Exercise();
                     buffer.setId(cursor.getLong(0));
-                    buffer.setName(cursor.getString(1));
+                    buffer.setRecoverTime(cursor.getInt(1));
+                    buffer.setName(cursor.getString(2));
                     currentID = buffer.getId();
                 }
                 else
                 {
-                    buffer.addCategory(new Category(cursor.getString(5),cursor.getLong(3)));
+                    buffer.addCategory(new Category(cursor.getString(6),cursor.getLong(4)));
                 }
 
             }while (cursor.moveToNext());
