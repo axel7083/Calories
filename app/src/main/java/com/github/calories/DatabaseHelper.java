@@ -626,7 +626,7 @@ WHERE column1 LIKE '%word1%'*/
     public List<Exercise> getExercises() {
         List<Exercise> exercises = new ArrayList<>();
 
-        String select_query = "SELECT * FROM tbl_exercise INNER JOIN tbl_e_c ON tbl_exercise.ID = tbl_e_c.ID_Exercise INNER JOIN tbl_category ON tbl_category.ID = tbl_e_c.ID_Category ";
+        String select_query = "SELECT * FROM tbl_exercise LEFT JOIN tbl_e_c ON tbl_exercise.ID = tbl_e_c.ID_Exercise LEFT JOIN tbl_category ON tbl_category.ID = tbl_e_c.ID_Category ";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);
@@ -647,7 +647,8 @@ WHERE column1 LIKE '%word1%'*/
                 }
                 else
                 {
-                    buffer.addCategory(new Category(cursor.getString(7),cursor.getLong(5)));
+                    if(cursor.getString(7) != null)
+                        buffer.addCategory(new Category(cursor.getString(7),cursor.getLong(5)));
                 }
 
             }while (cursor.moveToNext());

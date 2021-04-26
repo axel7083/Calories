@@ -13,6 +13,7 @@ import com.github.calories.models.Exercise
 import com.github.calories.models.RawValues
 import com.github.calories.models.Stats
 import com.github.calories.utils.CustomBarChartRender
+import com.github.calories.utils.SimpleCountDownTimer
 import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime.*
 import com.github.mikephil.charting.components.XAxis
@@ -28,7 +29,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class RecoverFragment : Fragment() {
+class RecoverFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
 
     private lateinit var binding: FragmentRecoverBinding
 
@@ -36,14 +37,18 @@ class RecoverFragment : Fragment() {
     private var nextExercise: Exercise? = null
     private var recoverEvent: RecoverEvent? = null
 
+    private var simpleCountDownTimer: SimpleCountDownTimer? = null
+
+    private var recoverTime: Int?  = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
 
-    fun setExercises(previousExercise: Exercise, nextExercise: Exercise?) {
+    fun setExercises(previousExercise: Exercise, nextExercise: Exercise?, recoverTime: Int) {
         this.previousExercise = previousExercise
         this.nextExercise = nextExercise
+        this.recoverTime = recoverTime
         if(this::binding.isInitialized) {
             setupData()
         }
@@ -56,20 +61,30 @@ class RecoverFragment : Fragment() {
 
     private fun setupData() {
         if(nextExercise != null) {
+
+            simpleCountDownTimer = SimpleCountDownTimer(recoverTime!!.toLong(),1,this)
+            simpleCountDownTimer!!.start()
+
             binding.nextExercisePreview.setImageBitmap(nextExercise!!.image!!)
             binding.nextExerciseName.text = nextExercise!!.name
+
+            binding.btnMoreTime.setOnClickListener {
+                simpleCountDownTimer!!.add(BONUS_TIME.toLong())
+            }
         }
         else
         {
             binding.nextPreview.visibility = View.GONE
             binding.nextTitle.visibility = View.GONE
+            binding.timer.visibility = View.GONE
             binding.btnStart.text = "Finish Workout"
+            binding.btnMoreTime.text = "Finish Workout"
+            binding.btnMoreTime.setOnClickListener {
+                recoverEvent?.onStart()
+            }
         }
 
-
-
         binding.rateTitle.text = "Rate previous exercise (${previousExercise.name})"
-
         binding.btnStart.setOnClickListener {
             recoverEvent?.onStart()
         }
@@ -100,5 +115,14 @@ class RecoverFragment : Fragment() {
 
     companion object {
         private const val TAG: String = "RecoverFragment"
+        private const val BONUS_TIME: Int = 20
+    }
+
+    override fun onCountDownActive(time: String?) {
+        binding.timerValue.text = time
+    }
+
+    override fun onCountDownFinished() {
+        recoverEvent?.onStart()
     }
 }

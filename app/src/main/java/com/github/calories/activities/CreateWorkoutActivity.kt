@@ -114,8 +114,9 @@ class CreateWorkoutActivity : AppCompatActivity() {
                 if (resultCode == RESULT_OK && data != null) {
                     val json = data.getStringExtra("exercise")
                     val exercise = Gson().fromJson(json,Exercise::class.java)
-
-                    //TODO: ADD TO LIST AND SELECT IT => see in adapter
+                    list = list.plus(exercise)
+                    adapter.updateData(list)
+                    adapter.notifyDataSetChanged()
                 }
             }
         }

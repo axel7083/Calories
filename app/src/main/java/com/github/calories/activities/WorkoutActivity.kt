@@ -50,11 +50,11 @@ class WorkoutActivity : AppCompatActivity() {
             override fun onFinish() {
 
                 if(exercises.size > currentExercise) {
-                    recoverFragment.setExercises(exercises[currentExercise - 1],exercises[currentExercise])
+                    recoverFragment.setExercises(exercises[currentExercise - 1],exercises[currentExercise], DEFAULT_RECOVER_TIME)
                     switchFragments(RECOVER_FRAGMENT)
                 }
                 else {
-                    recoverFragment.setExercises(exercises[currentExercise - 1], null)
+                    recoverFragment.setExercises(exercises[currentExercise - 1], null,0)
                     switchFragments(RECOVER_FRAGMENT)
                 }
             }
@@ -128,5 +128,6 @@ class WorkoutActivity : AppCompatActivity() {
         private const val EXERCISE_FRAGMENT = 0
         private const val RECOVER_FRAGMENT = 1
         private const val FINISH_FRAGMENT = 2
+        private const val DEFAULT_RECOVER_TIME = 30
     }
 }

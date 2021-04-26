@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:gravity="center">
         <TextView
+            android:id="@+id/timerValue"
             tools:text="00:15"
             android:layout_gravity="bottom"
             android:textSize="50sp"

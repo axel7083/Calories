@@ -31,15 +31,18 @@ public final class SimpleCountDownTimer {
     private boolean isPause = true;
 
     /**
-     * @param fromMinutes         minutes to countdown.
-     * @param fromSeconds         seconds to countdown.
+     * @param seconds         time in seconds
      * @param onCountDownListener A listener for countdown ticks.
      * @param delayInSeconds      optional delay in seconds for a tick to execute default is 1 second.
      */
-    public SimpleCountDownTimer(long fromMinutes, long fromSeconds, long delayInSeconds, OnCountDownListener onCountDownListener) {
+    public SimpleCountDownTimer(long seconds, long delayInSeconds, OnCountDownListener onCountDownListener) {
+
+        fromMinutes = seconds/60;
+        fromSeconds = seconds%60;
 
         if (fromMinutes <= 0 && fromSeconds <= 0)
             throw new IllegalStateException(getClass().getSimpleName() + " can't work in state 0:00");
+
 
         if (delayInSeconds > 1)
             this.delayInSeconds = delayInSeconds;
@@ -193,6 +196,14 @@ public final class SimpleCountDownTimer {
 
     private void updateUI() {
         onCountDownListener.onCountDownActive(getCountDownTime());
+    }
+
+    public void add(long seconds) {
+        fromMinutes = getMinutesTillCountDown();
+        fromSeconds = getSecondsTillCountDown();
+        fromMinutes+= seconds/60;
+        fromSeconds+= seconds%60;
+        setCountDownValues(fromMinutes, fromSeconds);
     }
 
     public void resume() {

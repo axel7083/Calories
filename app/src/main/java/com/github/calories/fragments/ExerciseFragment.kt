@@ -16,7 +16,6 @@ import java.util.*
 class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
 
     private lateinit var binding: FragmentExerciseBinding
-    private lateinit var db: DatabaseHelper
     private var exerciseEvent: ExerciseEvent? = null
     private lateinit var exercise: Exercise
 
@@ -24,7 +23,6 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        db = DatabaseHelper(context)
     }
 
     fun setExercise(exercise: Exercise) {
@@ -38,7 +36,7 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
         binding.preview.setImageBitmap(exercise.image!!)
         binding.exerciseName.text = exercise.name
 
-        if(exercise.time != null) {
+        if(exercise.time != 0) {
             binding.timeLeft.text = exercise.time.toString()
 
             binding.btnPause.setOnClickListener {
@@ -51,14 +49,16 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
                     simpleCountDownTimer!!.pause()
                 }
             }
-
-
-            simpleCountDownTimer = SimpleCountDownTimer(0,exercise.time!!.toLong(),1,this)
+            simpleCountDownTimer = SimpleCountDownTimer(exercise.time!!.toLong(),1,this)
             simpleCountDownTimer!!.start()
         }
         else
         {
-            binding.timeLeft.text = "add next btn"
+            binding.timeLeft.text = "TODO: save the values"
+            binding.btnPause.text = "Finish"
+            binding.btnPause.setOnClickListener {
+                exerciseEvent?.onFinish()
+            }
         }
     }
 
@@ -86,16 +86,28 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
         }
 
         binding.btnSkip.setOnClickListener {
+            simpleCountDownTimer!!.pause()
+            simpleCountDownTimer = null
             exerciseEvent?.onFinish()
         }
 
         binding.btnLater.setOnClickListener {
+            simpleCountDownTimer!!.pause()
+            simpleCountDownTimer = null
             exerciseEvent?.onFinish()
         }
     }
 
     interface ExerciseEvent {
         fun onFinish()
+
+    }
+
+    override fun onDestroy() {
+        simpleCountDownTimer!!.pause()
+        simpleCountDownTimer = null
+
+        super.onDestroy()
     }
 
     companion object {
