@@ -93,6 +93,11 @@ class CreateWorkoutActivity : AppCompatActivity() {
             workout.name = name
             workout.exercises = adapter.selected
 
+            if(workout.exercises!!.isEmpty()) {
+                Toast.makeText(this@CreateWorkoutActivity,"Select one exercise at least.",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             ThreadUtils.execute(this@CreateWorkoutActivity, { db.addWorkout(workout) }, {
                 Log.d(TAG, "onCreate: Saving to storage success")
                 setResult(RESULT_OK)

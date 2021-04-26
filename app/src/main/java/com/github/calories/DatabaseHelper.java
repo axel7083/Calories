@@ -9,6 +9,8 @@ import android.os.Environment;
 import android.util.Log;
 
 
+import androidx.core.content.ContextCompat;
+
 import com.github.calories.models.Category;
 import com.github.calories.models.Exercise;
 import com.github.calories.models.Food;
@@ -640,12 +642,12 @@ WHERE column1 LIKE '%word1%'*/
                     buffer = new Exercise();
                     buffer.setId(cursor.getLong(0));
                     buffer.setRecoverTime(cursor.getInt(1));
-                    buffer.setName(cursor.getString(2));
+                    buffer.setName(cursor.getString(3));
                     currentID = buffer.getId();
                 }
                 else
                 {
-                    buffer.addCategory(new Category(cursor.getString(6),cursor.getLong(4)));
+                    buffer.addCategory(new Category(cursor.getString(7),cursor.getLong(5)));
                 }
 
             }while (cursor.moveToNext());
@@ -655,6 +657,31 @@ WHERE column1 LIKE '%word1%'*/
         cursor.close();
         return exercises;
     }
+
+
+    public List<Exercise> getExerciseByWorkoutID(Long workout_id, boolean loadImages, Context context) {
+        List<Exercise> exercises = new ArrayList<>();
+
+        String select_query = "SELECT * FROM tbl_w_e INNER JOIN tbl_exercise ON tbl_w_e.ID_Exercise = tbl_exercise.ID WHERE tbl_w_e.ID_Workout = " + workout_id;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Exercise e = new Exercise(cursor.getLong(1),cursor.getString(5), null,cursor.getInt(3),cursor.getInt(4));
+                if(loadImages) {
+                    e.loadBitmap(context);
+                }
+                exercises.add(e);
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return exercises;
+    }
+
+
 
     // Copy the database from assets
     public static void copyDataBase(Context context) throws IOException {

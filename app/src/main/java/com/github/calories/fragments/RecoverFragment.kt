@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.github.calories.DatabaseHelper
-import com.github.calories.databinding.FragmentExerciseBinding
+import com.github.calories.databinding.FragmentRecoverBinding
 import com.github.calories.databinding.FragmentStatsBinding
 import com.github.calories.models.Exercise
 import com.github.calories.models.RawValues
@@ -28,40 +28,51 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class ExerciseFragment : Fragment() {
+class RecoverFragment : Fragment() {
 
-    private lateinit var binding: FragmentExerciseBinding
-    private lateinit var db: DatabaseHelper
-    private var exerciseEvent: ExerciseEvent? = null
-    private lateinit var exercise: Exercise
+    private lateinit var binding: FragmentRecoverBinding
+
+    private lateinit var previousExercise: Exercise
+    private var nextExercise: Exercise? = null
+    private var recoverEvent: RecoverEvent? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        db = DatabaseHelper(context)
     }
 
-    fun setExercise(exercise: Exercise) {
-        this.exercise = exercise
+    fun setExercises(previousExercise: Exercise, nextExercise: Exercise?) {
+        this.previousExercise = previousExercise
+        this.nextExercise = nextExercise
         if(this::binding.isInitialized) {
             setupData()
         }
     }
 
-    private fun setupData() {
-        binding.preview.setImageBitmap(exercise.image!!)
-        binding.exerciseName.text = exercise.name
+    fun setEventListener(recoverEvent: RecoverEvent) {
+        this.recoverEvent = recoverEvent
+    }
 
-        if(exercise.time != null) {
-            binding.timeLeft.text = exercise.time.toString()
+
+    private fun setupData() {
+        if(nextExercise != null) {
+            binding.nextExercisePreview.setImageBitmap(nextExercise!!.image!!)
+            binding.nextExerciseName.text = nextExercise!!.name
         }
         else
         {
-            binding.timeLeft.text = "add next btn"
+            binding.nextPreview.visibility = View.GONE
+            binding.nextTitle.visibility = View.GONE
+            binding.btnStart.text = "Finish Workout"
         }
-    }
 
-    fun setEventListener(exerciseEvent: ExerciseEvent) {
-        this.exerciseEvent = exerciseEvent
+
+
+        binding.rateTitle.text = "Rate previous exercise (${previousExercise.name})"
+
+        binding.btnStart.setOnClickListener {
+            recoverEvent?.onStart()
+        }
     }
 
     override fun onCreateView(
@@ -70,33 +81,24 @@ class ExerciseFragment : Fragment() {
     ): View {
 
         // Inflate the layout for this fragment
-        binding = FragmentExerciseBinding.inflate(inflater, container, false)
+        binding = FragmentRecoverBinding.inflate(inflater, container, false)
         // Inflate the layout for this fragment
         return binding.root    }
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if(this::exercise.isInitialized) {
+        if(this::previousExercise.isInitialized) {
             setupData()
         }
 
-        binding.btnSkip.setOnClickListener {
-            exerciseEvent?.onFinish()
-        }
-
-        binding.btnLater.setOnClickListener {
-            exerciseEvent?.onFinish()
-        }
     }
 
-    interface ExerciseEvent {
-        fun onFinish()
+    interface RecoverEvent {
+        fun onStart()
     }
 
     companion object {
-        private const val TAG: String = "StatsFragment"
+        private const val TAG: String = "RecoverFragment"
     }
 }

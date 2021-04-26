@@ -13,6 +13,7 @@ import com.github.calories.activities.CreateExerciseActivity
 import com.github.calories.activities.CreateWorkoutActivity
 import com.github.calories.activities.HistoryActivity
 import com.github.calories.activities.MainActivity.Companion.CREATE_WORKOUT_ACTIVITY
+import com.github.calories.activities.WorkoutActivity
 import com.github.calories.adapters.WorkoutAdapter
 import com.github.calories.databinding.FragmentGymBinding
 import com.github.calories.databinding.FragmentStatsBinding
@@ -29,6 +30,7 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import com.google.gson.Gson
 import java.time.LocalDate
 import java.time.temporal.TemporalField
 import java.time.temporal.WeekFields
@@ -77,6 +79,12 @@ class GymFragment : Fragment() {
         binding.workouts.layoutManager = GridLayoutManager(activity,2)
         binding.workouts.setHasFixedSize(false)
         binding.workouts.adapter = workoutAdapter
+
+        workoutAdapter.setClickListener { workout ->
+            val i = Intent(context, WorkoutActivity::class.java)
+            i.putExtra("workout", Gson().toJson(workout as Workout))
+            requireActivity().startActivity(i) //TODO: maybe see if needed to get a result? to refresh future data display maybe
+        }
 
         binding.btnCreate.setOnClickListener {
             requireActivity().startActivityForResult(Intent(context, CreateWorkoutActivity::class.java), CREATE_WORKOUT_ACTIVITY)

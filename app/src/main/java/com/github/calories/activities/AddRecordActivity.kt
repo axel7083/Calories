@@ -13,7 +13,7 @@ import com.github.calories.openFoodFact.ProductByID
 import com.github.calories.utils.UtilsTime.formatSQL
 import com.github.calories.adapters.FoodAdapter
 import com.github.calories.adapters.FoodsSearchAdapter
-import com.github.calories.databinding.ActivityAddBinding
+import com.github.calories.databinding.ActivityAddRecordBinding
 import com.github.calories.models.Food
 import com.github.calories.models.Record
 import com.github.calories.openFoodFact.ProductsByQuery
@@ -24,7 +24,7 @@ import java.util.*
 class AddRecordActivity : AppCompatActivity(), ProductByID.Callback,
     FoodAdapter.ItemClickListener {
 
-    private lateinit var binding: ActivityAddBinding
+    private lateinit var binding: ActivityAddRecordBinding
     private lateinit var foodAdapter: FoodAdapter
 
     private lateinit var record: Record
@@ -32,7 +32,7 @@ class AddRecordActivity : AppCompatActivity(), ProductByID.Callback,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddBinding.inflate(layoutInflater)
+        binding = ActivityAddRecordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val calendar: Calendar = Calendar.getInstance()

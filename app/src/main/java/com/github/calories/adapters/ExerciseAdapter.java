@@ -74,13 +74,13 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.title.setText(mData.get(position).getName());
 
-        if(selected.containsKey(mData.get(position)) && selected.get(mData.get(position))) {
+        /*if(selected.containsKey(mData.get(position)) && selected.get(mData.get(position))) {
             holder.title.setTextColor(ContextCompat.getColor(mInflater.getContext(),R.color.blue));
         }
         else
         {
             holder.title.setTextColor(ContextCompat.getColor(mInflater.getContext(),R.color.textColorPrimary));
-        }
+        }*/
 
         // Setup position
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
