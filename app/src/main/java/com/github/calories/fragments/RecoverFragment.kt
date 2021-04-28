@@ -125,4 +125,18 @@ class RecoverFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener {
     override fun onCountDownFinished() {
         recoverEvent?.onStart()
     }
+
+    override fun onPause() {
+        super.onPause()
+        if(simpleCountDownTimer != null)
+            simpleCountDownTimer!!.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(simpleCountDownTimer!!.isPaused) {
+            simpleCountDownTimer!!.resume()
+        }
+    }
 }

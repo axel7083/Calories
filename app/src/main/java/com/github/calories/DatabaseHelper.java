@@ -50,8 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Table for weight
     public static final String TABLE_WEIGHT = "tbl_weight";
-
-
+    
     // Table for workout
     public static final String TABLE_CATEGORY = "tbl_category";
     public static final String TABLE_EXERCISE = "tbl_exercise";
@@ -112,13 +111,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         query = "CREATE TABLE " + TABLE_EXERCISE + "(" +
                 "ID INTEGER PRIMARY KEY, " +
                 "RecoverTime INTEGER, " +
+                "Repetition INTEGER, " +
+                "Weighted INTEGER, " +
                 "Time INTEGER, " +
                 "Name TEXT NOT NULL)";
         db.execSQL(query);
 
         query = "CREATE TABLE " + TABLE_WORKOUT + "(" +
                 "ID INTEGER PRIMARY KEY, " +
-                "Name TEXT NOT NULL)";
+                "Name TEXT NOT NULL," +
+                "RecoverTime INTEGER)";
         db.execSQL(query);
 
         query = "CREATE TABLE " + TABLE_E_C + "(" +
@@ -570,6 +572,8 @@ WHERE column1 LIKE '%word1%'*/
         exerciseValues.put("Name", exercise.getName());
         exerciseValues.put("RecoverTime", exercise.getRecoverTime());
         exerciseValues.put("Time", exercise.getTime());
+        exerciseValues.put("Weighted", exercise.getWeighted()?1:0);
+        exerciseValues.put("Repetition", exercise.getRepetitionCount());
         exercise.setId(db.insert(TABLE_EXERCISE, null , exerciseValues));
 
         // Insert in db the categories selected for this exercise
@@ -590,6 +594,7 @@ WHERE column1 LIKE '%word1%'*/
 
         ContentValues workoutValues =  new ContentValues();
         workoutValues.put("Name", workout.getName());
+        workoutValues.put("RecoverTime", workout.getRecoverTime());
         workout.setId(db.insert(TABLE_WORKOUT, null , workoutValues));
 
         // Insert in db the categories selected for this exercise
@@ -615,7 +620,7 @@ WHERE column1 LIKE '%word1%'*/
 
         if (cursor.moveToFirst()) {
             do {
-                workouts.add(new Workout(cursor.getLong(0),cursor.getString(1), null));
+                workouts.add(new Workout(cursor.getLong(0),cursor.getString(1),cursor.getInt(2), null));
             }while (cursor.moveToNext());
         }
         cursor.close();
@@ -642,7 +647,10 @@ WHERE column1 LIKE '%word1%'*/
                     buffer = new Exercise();
                     buffer.setId(cursor.getLong(0));
                     buffer.setRecoverTime(cursor.getInt(1));
-                    buffer.setName(cursor.getString(3));
+                    buffer.setRepetitionCount(cursor.getInt(2));
+                    buffer.setWeighted(cursor.getInt(3) == 1);
+                    buffer.setTime(cursor.getInt(4));
+                    buffer.setName(cursor.getString(5));
                     currentID = buffer.getId();
                 }
                 else
@@ -670,7 +678,7 @@ WHERE column1 LIKE '%word1%'*/
 
         if (cursor.moveToFirst()) {
             do {
-                Exercise e = new Exercise(cursor.getLong(1),cursor.getString(5), null,cursor.getInt(3),cursor.getInt(4));
+                Exercise e = new Exercise(cursor.getLong(1),cursor.getString(7), null,cursor.getInt(3),cursor.getInt(4),cursor.getInt(5) == 1,cursor.getInt(6));
                 if(loadImages) {
                     e.loadBitmap(context);
                 }

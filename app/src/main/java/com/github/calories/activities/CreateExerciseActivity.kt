@@ -116,6 +116,7 @@ class CreateExerciseActivity : AppCompatActivity() {
 
         binding.multipleRepSwitch.setOnCheckedChangeListener { _, checked ->
             binding.recoverTimeLayout.visibility = if(checked) VISIBLE else GONE
+            binding.repetitionCountLayout.visibility = if(checked) VISIBLE else GONE
         }
 
         binding.timedExerciseSwitch.setOnCheckedChangeListener { _, checked ->
@@ -134,13 +135,23 @@ class CreateExerciseActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if(binding.multipleRepSwitch.isChecked) {
-                exercise.recoverTime = binding.recoverTime.text.toString().toInt()
+            try {
+                if(binding.multipleRepSwitch.isChecked) {
+                    exercise.recoverTime = binding.recoverTime.text.toString().toInt()
+                    exercise.repetitionCount = binding.repetitionCount.text.toString().toInt()
+                }
+
+                exercise.weighted = binding.weightedExerciseSwitch.isChecked
+
+                if(binding.timedExerciseSwitch.isChecked) {
+                    exercise.time = binding.timedValue.text.toString().toInt()
+                }
+            }
+            catch (e: NumberFormatException) {
+                Toast.makeText(this@CreateExerciseActivity,"Invalid input.",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
 
-            if(binding.timedExerciseSwitch.isChecked) {
-                exercise.time = binding.timedValue.text.toString().toInt()
-            }
 
             exercise.name = name
             exercise.categories = adapter.selected

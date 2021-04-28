@@ -31,6 +31,7 @@ import com.github.calories.utils.StorageUtils.saveToInternalStorage
 import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime
 import com.google.gson.Gson
+import java.lang.NumberFormatException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -92,6 +93,14 @@ class CreateWorkoutActivity : AppCompatActivity() {
 
             workout.name = name
             workout.exercises = adapter.selected
+
+            try {
+                workout.recoverTime = binding.recoverTime.text.toString().toInt()
+            }
+            catch (e: NumberFormatException) {
+                Toast.makeText(this@CreateWorkoutActivity,"Invalid input.",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             if(workout.exercises!!.isEmpty()) {
                 Toast.makeText(this@CreateWorkoutActivity,"Select one exercise at least.",Toast.LENGTH_SHORT).show()

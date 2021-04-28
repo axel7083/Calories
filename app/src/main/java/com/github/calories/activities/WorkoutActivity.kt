@@ -32,6 +32,8 @@ class WorkoutActivity : AppCompatActivity() {
     private lateinit var exercises: List<Exercise>
     private var currentExercise: Int = 0
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityWorkoutBinding.inflate(layoutInflater)
@@ -57,6 +59,18 @@ class WorkoutActivity : AppCompatActivity() {
                     recoverFragment.setExercises(exercises[currentExercise - 1], null,0)
                     switchFragments(RECOVER_FRAGMENT)
                 }
+            }
+
+            override fun onSkip() {
+
+            }
+
+            override fun onLater() {
+
+            }
+
+            override fun onSetTitle(str: String) {
+                binding.statusBar.setTitle(str)
             }
         })
 

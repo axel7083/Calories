@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                     execute(this@MainActivity, { db.addWeight(UtilsTime.format(calendar.toInstant(), DATE_PATTERN), weight.toFloat()) }, { _ ->
                         homeFragment.refresh()
                     })
-            },"Current weight",InputType.TYPE_NUMBER_FLAG_DECIMAL,"Kg")
+            },"Current weight",InputType.TYPE_NUMBER_FLAG_SIGNED,"Kg")
 
             val window = dialog.window
             if (window != null) {

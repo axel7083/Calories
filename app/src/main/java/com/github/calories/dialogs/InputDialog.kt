@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.View
 import android.view.View.GONE
@@ -11,7 +12,7 @@ import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import com.github.calories.databinding.DialogInputBinding
 
-class InputDialog(private val activity: Activity, private val callback: (String) -> Unit, val title: String, val inputType: Int, private val unit: String? = null) : Dialog(activity), View.OnClickListener {
+class InputDialog(private val activity: Activity, private val callback: (String) -> Unit, val title: String, private val inputType: Int, private val unit: String? = null) : Dialog(activity), View.OnClickListener {
 
     private lateinit var binding: DialogInputBinding
 
@@ -34,11 +35,10 @@ class InputDialog(private val activity: Activity, private val callback: (String)
         else
             binding.unit.text = unit
 
-        binding.weightValue.inputType= inputType
+        binding.weightValue.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
         binding.weightValue.requestFocus()
         val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
-
     }
 
     override fun onClick(v: View) {}
