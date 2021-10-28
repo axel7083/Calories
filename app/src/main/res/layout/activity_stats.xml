@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.StatsActivity">
+
+    <com.github.calories.views.StatusBar
+        android:id="@+id/status_bar"
+        android:layout_width="match_parent"
+        app:leftIcon="@drawable/ic_left_arrow"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="Stats"/>
+
+    <com.github.calories.views.BarGraph
+        android:id="@+id/workout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

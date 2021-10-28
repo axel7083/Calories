@@ -114,15 +114,6 @@ class CreateExerciseActivity : AppCompatActivity() {
             adapter.notifyDataSetChanged()
         })
 
-        binding.multipleRepSwitch.setOnCheckedChangeListener { _, checked ->
-            binding.recoverTimeLayout.visibility = if(checked) VISIBLE else GONE
-            binding.repetitionCountLayout.visibility = if(checked) VISIBLE else GONE
-        }
-
-        binding.timedExerciseSwitch.setOnCheckedChangeListener { _, checked ->
-            binding.timedValueLayout.visibility = if(checked) VISIBLE else GONE
-        }
-
         binding.btnSave.setOnClickListener {
             val name = binding.nameEdit.text.toString()
             if(name.isEmpty()) {
@@ -134,24 +125,6 @@ class CreateExerciseActivity : AppCompatActivity() {
                 Toast.makeText(this@CreateExerciseActivity,"You need to put an image.",Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            try {
-                if(binding.multipleRepSwitch.isChecked) {
-                    exercise.recoverTime = binding.recoverTime.text.toString().toInt()
-                    exercise.repetitionCount = binding.repetitionCount.text.toString().toInt()
-                }
-
-                exercise.weighted = binding.weightedExerciseSwitch.isChecked
-
-                if(binding.timedExerciseSwitch.isChecked) {
-                    exercise.time = binding.timedValue.text.toString().toInt()
-                }
-            }
-            catch (e: NumberFormatException) {
-                Toast.makeText(this@CreateExerciseActivity,"Invalid input.",Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
 
             exercise.name = name
             exercise.categories = adapter.selected

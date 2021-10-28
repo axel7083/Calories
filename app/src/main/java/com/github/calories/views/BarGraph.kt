@@ -19,6 +19,8 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.gson.Gson
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -37,9 +39,19 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
             )
     )
 
-    private lateinit var data: List<Pair<String, Float>>
+    fun setDrawValueAboveBar(boolean: Boolean) {
+        binding.graph.setDrawValueAboveBar(boolean)
+    }
+
+    private lateinit var data: List<Pair<String, FloatArray>>
     private val BACKGROUND: Int = Color.TRANSPARENT
     var valueFormat : String = "%.0f"
+
+    var valueFormatter: ValueFormatter = object : ValueFormatter() {
+        override fun getFormattedValue(value: Float): String {
+            return String.format(valueFormat, value)
+        }
+    }
 
     fun setLoading(b: Boolean) {
         binding.loadingIndicator.visibility = if(b) View.VISIBLE else View.GONE
@@ -54,8 +66,9 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
 
     }
 
-    fun setData(data: List<Pair<String, Float>>, displayAverage: Boolean = false, valueFormat: String? = null) {
+    fun setData(data: List<Pair<String, FloatArray>>, displayAverage: Boolean = false, valueFormat: String? = null) {
 
+        Log.d(TAG, "setData: " + Gson().toJson(data))
         if(valueFormat != null)
             this.valueFormat = valueFormat
 
@@ -90,7 +103,6 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         {
             for (i in this.data.indices) {
                 binding.graph.data.addEntry(BarEntry(i.toFloat(), this.data[i].second), 0)
-                Log.d(TAG, "setupChart: adding entry")
             }
 
             binding.graph.data.notifyDataChanged()
@@ -101,7 +113,7 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         configureChartAppearance()
     }
 
-    private fun createChartData(): BarData? {
+    private fun createChartData(): BarData {
         val values = ArrayList<BarEntry>()
         for (i in data.indices) {
             values.add(BarEntry(i.toFloat(), data[i].second))
@@ -112,21 +124,27 @@ class BarGraph(context: Context, attrs: AttributeSet) : LinearLayout(context, at
         val data = BarData(dataSets)
         data.barWidth = 0.5f
         data.setValueTextSize(8f)
+        set1.setColors(
+            ColorTemplate.rgb("#2ecc71"),
+            ColorTemplate.rgb("#f1c40f"),
+            ColorTemplate.rgb("#e74c3c"),
+            ColorTemplate.rgb("#3498db"));
+
         data.setValueTextColor(ContextCompat.getColor(context, R.color.textColorSecondary))
-        data.setValueFormatter(object : ValueFormatter() {
-            override fun getFormattedValue(value: Float): String {
-                return String.format(valueFormat, value)
-            }
-        })
+        data.setValueFormatter(valueFormatter)
+
         data.setDrawValues(true)
         return data
     }
+
 
     private fun setupAverage() {
 
         var average = 0f
         this.data.forEach { d ->
-            average+=d.second
+
+            for(v in d.second)
+                average+=v
         }
         average/=this.data.size
 

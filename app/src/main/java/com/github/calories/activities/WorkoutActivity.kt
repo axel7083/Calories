@@ -1,38 +1,45 @@
 package com.github.calories.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.github.calories.DatabaseHelper
 import com.github.calories.R
+import com.github.calories.adapters.DetailedExerciseAdapter
 import com.github.calories.databinding.ActivityWorkoutBinding
-import com.github.calories.databinding.FragmentFinishWorkoutBinding
 import com.github.calories.fragments.*
 import com.github.calories.models.Exercise
+import com.github.calories.models.ExerciseInput
 import com.github.calories.models.Workout
 import com.github.calories.utils.ThreadUtils
-import com.github.calories.utils.UtilsTime
 import com.google.gson.Gson
 
-class WorkoutActivity : AppCompatActivity() {
+class WorkoutActivity : AppCompatActivity(), DetailedExerciseAdapter.ClickEvent {
 
     private lateinit var binding: ActivityWorkoutBinding
     lateinit var db: DatabaseHelper
 
     // Fragments
     private lateinit var exerciseFragment: ExerciseFragment
-    private lateinit var recoverFragment: RecoverFragment
-    private lateinit var workoutFinishWorkoutFragment: FinishWorkoutFragment
-
+    private lateinit var workoutFragment: WorkoutFragment
 
     private lateinit var workout: Workout
-    private lateinit var exercises: List<Exercise>
-    private var currentExercise: Int = 0
+    private var updated: Boolean = false
+    private lateinit var currentExercise: Exercise
 
 
+    private fun setupWorkout() {
+        ThreadUtils.execute(this, { db.getExerciseByWorkoutID(workout.id!!,true,applicationContext) }, { exercises ->
+            workout.exercises = exercises as List<Exercise>
+            workoutFragment.updateExercises(exercises)
+        })
+
+        binding.statusBar.setTitle(workout.name!!)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,32 +48,52 @@ class WorkoutActivity : AppCompatActivity() {
         db = DatabaseHelper(this)
         workout = Gson().fromJson(intent.getStringExtra("workout"),Workout::class.java)
 
-        ThreadUtils.execute(this, { db.getExerciseByWorkoutID(workout.id!!,true,applicationContext) }, { exercises ->
-            this.exercises = exercises as List<Exercise>
-            displayNextExercise()
-        })
-
         createFragments()
-        binding.statusBar.setTitle(workout.name!!)
+        setupWorkout()
+
+        binding.statusBar.setLeftIconClickListener {
+            finish()
+        }
+
+        binding.statusBar.setRightIconClickListener {
+            if(currentFragment == WORKOUT_FRAGMENT) {
+                val intent = Intent(this@WorkoutActivity, CreateWorkoutActivity::class.java)
+
+                Log.d(TAG, "onCreate: workout exercise size: " + workout.exercises?.size)
+
+                intent.putExtra("workout", Gson().toJson(workout))
+                startActivityForResult(
+                    intent,
+                    MainActivity.CREATE_WORKOUT_ACTIVITY
+                )
+            }
+            else
+            {
+                val intent = Intent(this@WorkoutActivity, StatsActivity::class.java)
+                intent.putExtra("workoutId", currentExercise.id)
+                startActivity(intent)
+                //TODO: handle show stats (another activity)
+            }
+        }
+
         exerciseFragment.setEventListener(object : ExerciseFragment.ExerciseEvent {
-            override fun onFinish() {
+            override fun onFinish(inputs: List<ExerciseInput>?) {
 
-                if(exercises.size > currentExercise) {
-                    recoverFragment.setExercises(exercises[currentExercise - 1],exercises[currentExercise], DEFAULT_RECOVER_TIME)
-                    switchFragments(RECOVER_FRAGMENT)
+                System.out.println(TAG + " onFinish received " + inputs?.size)
+                if(inputs != null) {
+                    for(input in inputs) {
+                        db.addExerciseRecord(input)
+
+                    }
                 }
-                else {
-                    recoverFragment.setExercises(exercises[currentExercise - 1], null,0)
-                    switchFragments(RECOVER_FRAGMENT)
-                }
+
+                currentExercise.doneToday = true
+                //workoutFragment.updateAdapters()
+                switchFragments(WORKOUT_FRAGMENT)
             }
 
-            override fun onSkip() {
-
-            }
-
-            override fun onLater() {
-
+            override fun onCancel() {
+                switchFragments(WORKOUT_FRAGMENT)
             }
 
             override fun onSetTitle(str: String) {
@@ -74,37 +101,27 @@ class WorkoutActivity : AppCompatActivity() {
             }
         })
 
-        recoverFragment.setEventListener(object : RecoverFragment.RecoverEvent {
-            override fun onStart() {
-                displayNextExercise()
-            }
-        })
+        switchFragments(WORKOUT_FRAGMENT)
     }
 
-    private fun displayNextExercise() {
-
-        if(exercises.size == currentExercise) {
-            //Finish
-            workoutFinishWorkoutFragment = FinishWorkoutFragment()
-            switchFragments(FINISH_FRAGMENT)
-        }
-        else
-        {
-            exerciseFragment.setExercise(exercises[currentExercise])
-            switchFragments(EXERCISE_FRAGMENT)
-            currentExercise++
-        }
-
-    }
+    private var currentFragment = -1
 
     private fun switchFragments(index : Int) {
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
 
         val fragment: Fragment? = when(index) {
-            EXERCISE_FRAGMENT -> exerciseFragment
-            RECOVER_FRAGMENT -> recoverFragment
-            FINISH_FRAGMENT -> workoutFinishWorkoutFragment
+            EXERCISE_FRAGMENT -> {
+                currentFragment = EXERCISE_FRAGMENT
+                binding.statusBar.setRightIcon(ContextCompat.getDrawable(this, R.drawable.ic_statistics))
+                exerciseFragment
+            }
+            WORKOUT_FRAGMENT -> {
+                currentFragment = WORKOUT_FRAGMENT
+                binding.statusBar.setTitle(workout.name!!)
+                binding.statusBar.setRightIcon(ContextCompat.getDrawable(this, R.drawable.ic_pencil))
+                workoutFragment
+            }
             else -> null
         }
         fragmentTransaction.replace(R.id.contentFrame, fragment!!)
@@ -114,7 +131,7 @@ class WorkoutActivity : AppCompatActivity() {
 
     private fun createFragments() {
         exerciseFragment = ExerciseFragment()
-        recoverFragment = RecoverFragment()
+        workoutFragment = WorkoutFragment()
     }
 
     override fun onPause() {
@@ -127,21 +144,44 @@ class WorkoutActivity : AppCompatActivity() {
         Log.d(TAG, "onResume")
     }
 
-    var backCount: Long = 0
     override fun onBackPressed() {
-        if (System.currentTimeMillis() / 1000 - backCount < 3) {
-            finish()
-        } else {
-            backCount = System.currentTimeMillis() / 1000
-            Toast.makeText(this, "Press one more time to exit the workout.", Toast.LENGTH_LONG).show()
+        if(updated)
+            setResult(RESULT_OK)
+        finish()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(requestCode == MainActivity.CREATE_WORKOUT_ACTIVITY && resultCode == RESULT_OK) {
+            if(data != null) {
+                workout = Gson().fromJson(data.getStringExtra("workout"), Workout::class.java)
+
+                if(workout.exercises == null) {
+                    finish()
+                    return
+                }
+                updated = true
+                workoutFragment.updateExercises(workout.exercises!!)
+                binding.statusBar.setTitle(workout.name!!)
+            }
+            else {
+                setResult(RESULT_OK)
+                finish()
+            }
+
         }
     }
 
     companion object {
         private const val TAG = "WorkoutActivity"
-        private const val EXERCISE_FRAGMENT = 0
-        private const val RECOVER_FRAGMENT = 1
-        private const val FINISH_FRAGMENT = 2
-        private const val DEFAULT_RECOVER_TIME = 30
+        private const val WORKOUT_FRAGMENT = 0
+        private const val EXERCISE_FRAGMENT = 1
+    }
+
+    override fun onClick(exercise: Exercise) {
+        currentExercise = exercise
+        exerciseFragment.setExercise(exercise)
+        switchFragments(EXERCISE_FRAGMENT)
     }
 }

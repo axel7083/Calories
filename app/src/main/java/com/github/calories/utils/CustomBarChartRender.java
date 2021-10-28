@@ -35,6 +35,13 @@ public class CustomBarChartRender extends BarChartRenderer {
 
     protected void drawDataSet(Canvas c, IBarDataSet dataSet, int index) {
 
+        System.out.println("--drawDataSet--");
+        System.out.println(dataSet.isStacked());
+        System.out.println("getStackSize " + dataSet.getStackSize());
+        System.out.println("index " +index);
+        System.out.println("getEntryCount " + dataSet.getEntryCount());
+
+
         Transformer trans = mChart.getTransformer(dataSet.getAxisDependency());
         mBarBorderPaint.setColor(dataSet.getBarBorderColor());
         mBarBorderPaint.setStrokeWidth(Utils.convertDpToPixel(dataSet.getBarBorderWidth()));

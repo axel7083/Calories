@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
+import android.util.ArrayMap;
 import android.util.Log;
 
 
@@ -13,12 +14,14 @@ import androidx.core.content.ContextCompat;
 
 import com.github.calories.models.Category;
 import com.github.calories.models.Exercise;
+import com.github.calories.models.ExerciseInput;
 import com.github.calories.models.Food;
 import com.github.calories.models.Ingredient;
 import com.github.calories.models.RawValues;
 import com.github.calories.models.Record;
 import com.github.calories.models.Stats;
 import com.github.calories.models.Workout;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +33,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import kotlin.Pair;
 
@@ -57,6 +61,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_E_C = "tbl_e_c";
     public static final String TABLE_WORKOUT = "tbl_workout";
     public static final String TABLE_W_E = "tbl_w_e";
+
+    public static final String TABLE_RECORD_EXERCISE = "tbl_record_exercise";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -110,10 +116,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         query = "CREATE TABLE " + TABLE_EXERCISE + "(" +
                 "ID INTEGER PRIMARY KEY, " +
-                "RecoverTime INTEGER, " +
-                "Repetition INTEGER, " +
-                "Weighted INTEGER, " +
-                "Time INTEGER, " +
                 "Name TEXT NOT NULL)";
         db.execSQL(query);
 
@@ -133,6 +135,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "ID_Workout INTEGER NOT NULL, " +
                 "ID_Exercise INTEGER NOT NULL, " +
                 "PRIMARY KEY ( ID_Workout, ID_Exercise))";
+        db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_RECORD_EXERCISE + "(" +
+                "ID INTEGER PRIMARY KEY, " +
+                "ID_Exercise INTEGER, " +
+                "Weight INTEGER, " +
+                "Repetition INTEGER, " +
+                "Date TEXT default CURRENT_DATE)";
         db.execSQL(query);
     }
 
@@ -456,6 +466,38 @@ WHERE column1 LIKE '%word1%'*/
         return statsList;
     }
 
+
+    public List<Pair<String, List<Pair<Integer, Integer>>>>  getExerciseInputs(String exerciseID) {
+        Log.d(TAG, "getExerciseInputs: " + exerciseID);
+
+        Map<String, List<Pair<Integer, Integer>>> buffer = new HashMap<>();
+
+        String select_query = "SELECT * FROM " + TABLE_RECORD_EXERCISE + " WHERE ID_Exercise = " + exerciseID +" ORDER BY Date ASC";
+        Log.d(TAG, "getExerciseInputs: query : " + select_query);
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(select_query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String date = cursor.getString(4);
+                Log.d(TAG, "getExerciseInputs: Found date " + date);
+                List<Pair<Integer, Integer>> data = buffer.getOrDefault(date, new ArrayList<>());
+                data.add(new Pair<>(cursor.getInt(2), cursor.getInt(3)));
+                buffer.put(date,data);
+
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        List<Pair<String, List<Pair<Integer, Integer>>>> output = new ArrayList<>();
+
+        buffer.forEach((key, floatList) -> {
+            output.add(new Pair<>(key, floatList));
+        });
+        Log.d(TAG, "getExerciseInputs");
+        return output;
+    }
+
     /*public void deleteFoods(List<String> foods) {
         StringBuilder query = new StringBuilder("DELETE FROM " + TABLE_FOOD + " WHERE id IN (");
         for(int i = 0 ; i < foods.size() -1 ; i++) {
@@ -565,15 +607,21 @@ WHERE column1 LIKE '%word1%'*/
         db.close();
     }
 
+    public void deleteExercise(Exercise exercise) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_EXERCISE,"ID=" + exercise.getId(),null);
+        db.delete(TABLE_E_C,"ID_Exercise=" + exercise.getId(),null);
+        db.delete(TABLE_RECORD_EXERCISE,"ID_Exercise=" + exercise.getId(),null);
+        db.delete(TABLE_W_E,"ID_Exercise=" + exercise.getId(),null);
+        db.close();
+    }
+
     public Exercise addExercise(Exercise exercise) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues exerciseValues =  new ContentValues();
         exerciseValues.put("Name", exercise.getName());
-        exerciseValues.put("RecoverTime", exercise.getRecoverTime());
-        exerciseValues.put("Time", exercise.getTime());
-        exerciseValues.put("Weighted", exercise.getWeighted()?1:0);
-        exerciseValues.put("Repetition", exercise.getRepetitionCount());
+
         exercise.setId(db.insert(TABLE_EXERCISE, null , exerciseValues));
 
         // Insert in db the categories selected for this exercise
@@ -589,12 +637,39 @@ WHERE column1 LIKE '%word1%'*/
         return exercise;
     }
 
+    public Workout updateWorkout(Workout workout) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues workoutValues =  new ContentValues();
+        workoutValues.put("Name", workout.getName());
+        db.update(TABLE_WORKOUT, workoutValues, "ID= ?", new String[]{workout.getId()+""});
+
+        // Insert in db the categories selected for this exercise
+        if(workout.getExercises() != null)
+            for(Exercise exercise: workout.getExercises()) {
+                ContentValues w_e_values =  new ContentValues();
+                w_e_values.put("ID_Exercise",exercise.getId());
+                w_e_values.put("ID_Workout",workout.getId());
+                db.insertWithOnConflict(TABLE_W_E,null,w_e_values, SQLiteDatabase.CONFLICT_IGNORE);
+            }
+
+        db.close();
+        return workout;
+    }
+
+    public void deleteWorkout(Workout workout) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(TABLE_WORKOUT,"ID= ?", new String[]{workout.getId()+""});
+        db.delete(TABLE_W_E,"ID_Workout= ?", new String[]{workout.getId()+""});
+
+        db.close();
+    }
+
     public Workout addWorkout(Workout workout) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues workoutValues =  new ContentValues();
         workoutValues.put("Name", workout.getName());
-        workoutValues.put("RecoverTime", workout.getRecoverTime());
         workout.setId(db.insert(TABLE_WORKOUT, null , workoutValues));
 
         // Insert in db the categories selected for this exercise
@@ -620,7 +695,7 @@ WHERE column1 LIKE '%word1%'*/
 
         if (cursor.moveToFirst()) {
             do {
-                workouts.add(new Workout(cursor.getLong(0),cursor.getString(1),cursor.getInt(2), null));
+                workouts.add(new Workout(cursor.getLong(0),cursor.getString(1), null));
             }while (cursor.moveToNext());
         }
         cursor.close();
@@ -646,11 +721,7 @@ WHERE column1 LIKE '%word1%'*/
 
                     buffer = new Exercise();
                     buffer.setId(cursor.getLong(0));
-                    buffer.setRecoverTime(cursor.getInt(1));
-                    buffer.setRepetitionCount(cursor.getInt(2));
-                    buffer.setWeighted(cursor.getInt(3) == 1);
-                    buffer.setTime(cursor.getInt(4));
-                    buffer.setName(cursor.getString(5));
+                    buffer.setName(cursor.getString(1));
                     currentID = buffer.getId();
                 }
                 else
@@ -671,14 +742,17 @@ WHERE column1 LIKE '%word1%'*/
     public List<Exercise> getExerciseByWorkoutID(Long workout_id, boolean loadImages, Context context) {
         List<Exercise> exercises = new ArrayList<>();
 
-        String select_query = "SELECT * FROM tbl_w_e INNER JOIN tbl_exercise ON tbl_w_e.ID_Exercise = tbl_exercise.ID WHERE tbl_w_e.ID_Workout = " + workout_id;
+        String select_query = "SELECT tbl_exercise.ID, tbl_exercise.Name, MAX(tbl_record_exercise.Date) FROM tbl_w_e INNER JOIN tbl_exercise ON tbl_w_e.ID_Exercise = tbl_exercise.ID LEFT JOIN tbl_record_exercise ON tbl_exercise.ID = tbl_record_exercise.ID_Exercise WHERE tbl_w_e.ID_Workout = " + workout_id + " GROUP BY Name  ORDER BY  tbl_record_exercise.Date DESC";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(select_query, null);
 
         if (cursor.moveToFirst()) {
             do {
-                Exercise e = new Exercise(cursor.getLong(1),cursor.getString(7), null,cursor.getInt(3),cursor.getInt(4),cursor.getInt(5) == 1,cursor.getInt(6));
+                Exercise e = new Exercise(cursor.getLong(0),cursor.getString(1), null);
+                e.setLastTime(cursor.getString(2));
+                e.checkDate();
+
                 if(loadImages) {
                     e.loadBitmap(context);
                 }
@@ -690,6 +764,17 @@ WHERE column1 LIKE '%word1%'*/
         return exercises;
     }
 
+    public void addExerciseRecord(ExerciseInput exerciseInput) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues =  new ContentValues();
+        contentValues.put("ID_Exercise", exerciseInput.getExerciseId());
+        contentValues.put("Weight", exerciseInput.getWeight());
+        contentValues.put("Repetition", exerciseInput.getRepetition());
+
+        db.insert(TABLE_RECORD_EXERCISE, null , contentValues);
+        db.close();
+    }
 
 
     // Copy the database from assets
@@ -710,292 +795,4 @@ WHERE column1 LIKE '%word1%'*/
     }
 
 
-    //add the new expense
-    /*public long addExpense(Expense expense) {
-        SQLiteDatabase sqLiteDatabase = this .getWritableDatabase();
-        //inserting new row
-        long id = sqLiteDatabase.insert(TABLE_EXPENSE, null , extractValuesExpense(expense));
-        //close database connection
-        sqLiteDatabase.close();
-        return id;
-    }
-
-    public long addWeek(Week week) {
-        SQLiteDatabase sqLiteDatabase = this .getWritableDatabase();
-        //inserting new row
-        long id = sqLiteDatabase.insert(TABLE_WEEK, null , extractValuesWeek(week));
-        //close database connection
-        sqLiteDatabase.close();
-        return id;
-    }
-
-
-    //add the new category
-    public long addCategory(Category category) {
-        SQLiteDatabase sqLiteDatabase = this .getWritableDatabase();
-        //inserting new row
-        long id = sqLiteDatabase.insert(TABLE_CATEGORY, null , extractValuesCategory(category));
-        //close database connection
-        sqLiteDatabase.close();
-        return id;
-    }
-
-    //get the all expenses
-    public ArrayList<Expense> getExpenses() {
-        // select all query
-        String select_query= "SELECT *FROM " + TABLE_EXPENSE;
-        SQLiteDatabase db = this .getWritableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);
-
-        return extractExpenses(cursor);
-    }
-
-    //get the all expenses
-    public ArrayList<Category> getCategories() {
-        // select all query
-        String select_query= "SELECT *FROM " + TABLE_CATEGORY;
-        SQLiteDatabase db = this .getWritableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);
-
-        return extractCategories(cursor);
-    }
-
-    public double getTotalMoneySpent() {
-        SQLiteDatabase db = this .getWritableDatabase();
-
-        Cursor c = db.rawQuery("select sum(Value) from " + TABLE_EXPENSE, null);
-        double value = 0;
-        if(c.moveToFirst())
-            value = c.getDouble(0);
-        else
-            value = -1;
-        c.close();
-        return value;
-    }
-
-
-    public ArrayList<Pair<Long,Double>> getSpentPerCategory() {
-        SQLiteDatabase db = this .getWritableDatabase();
-
-        Cursor cursor = db.rawQuery("SELECT category, SUM(value) as total FROM " + TABLE_EXPENSE + " GROUP BY category", null);
-
-        ArrayList<Pair<Long,Double>> arrayList = new ArrayList<>();
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                Pair<Long, Double> cat = new Pair<>(cursor.getLong(0),cursor.getDouble(1));
-                arrayList.add(cat);
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
-        return arrayList;
-    }
-
-    public ArrayList<Week> getAllWeeks() {
-        // select all query
-        String select_query= "SELECT *FROM " + TABLE_WEEK;
-        SQLiteDatabase db = this .getWritableDatabase();
-        Cursor cursor = db.rawQuery(select_query, null);
-
-        return extractWeeks(cursor);
-    }
-
-
-    public ArrayList<Week> getWeeks() {
-        SQLiteDatabase db = this .getWritableDatabase();
-
-        Cursor cursor = db.rawQuery("SELECT " + TABLE_WEEK + ".ID," + TABLE_WEEK + ".goal,"+ TABLE_WEEK +".Date,SUM(" + TABLE_EXPENSE + ".Value) FROM " + TABLE_WEEK + " INNER JOIN "+ TABLE_EXPENSE +" on Date(" + TABLE_EXPENSE + ".Date,'weekday 0','-6 days') = " + TABLE_WEEK + ".Date GROUP BY " + TABLE_WEEK + ".ID ORDER BY " + TABLE_WEEK + ".Date DESC;", null);
-
-        ArrayList<Week> arrayList = new ArrayList<>();
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                if(cursor.getString(0) != null)
-                    arrayList.add(new Week(cursor.getString(0), cursor.getDouble(1), cursor.getString(2), cursor.getDouble(3) ));
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
-        return arrayList;
-    }
-
-
-    public double getMoneySpent(Calendar start, Calendar end) {
-        SQLiteDatabase db = this .getWritableDatabase();
-
-        String startDateQueryDate = TimeUtils.formatSQL(start.toInstant(),"Europe/Paris");
-        String endDateQueryDate = TimeUtils.formatSQL(end.toInstant(),"Europe/Paris");
-
-        Cursor c = db.rawQuery("select sum(Value) from " + TABLE_EXPENSE + " where Date BETWEEN '" + startDateQueryDate + "' AND '" + endDateQueryDate + "'", null);
-
-        double value = 0;
-        if(c.moveToFirst())
-            value = c.getDouble(0);
-        else
-            value = -1;
-        c.close();
-        return value;
-    }
-
-    //get all expenses between dates
-    public ArrayList<Expense> getExpenses(Calendar start, Calendar end) {
-
-        String startDateQueryDate = TimeUtils.formatSQL(start.toInstant(),"Europe/Paris");
-        String endDateQueryDate = TimeUtils.formatSQL(end.toInstant(),"Europe/Paris");
-
-        SQLiteDatabase db = this .getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from " + TABLE_EXPENSE + " where Date BETWEEN '" + startDateQueryDate + "' AND '" + endDateQueryDate + "' ORDER BY Date DESC", null);
-
-        return extractExpenses(cursor);
-    }
-
-    //get all expenses during the current week
-    public ArrayList<Expense> getCurrentWeekExpenses() {
-        return getExpenses(
-                TimeUtils.getFirstDayOfWeek("Europe/Paris"),
-                TimeUtils.getLastDayOfWeek("Europe/Paris")
-        );
-    }
-
-    //delete an expense
-    public void deleteExpense(String ID) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //deleting row
-        sqLiteDatabase.delete(TABLE_EXPENSE, "ID=" + ID, null);
-        sqLiteDatabase.close();
-    }
-
-    //delete a category
-    public void deleteCategory(String ID) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //deleting row
-        sqLiteDatabase.delete(TABLE_CATEGORY, "ID=" + ID, null);
-        sqLiteDatabase.close();
-    }
-
-    public void deleteWeek(String ID) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //deleting row
-        sqLiteDatabase.delete(TABLE_WEEK, "ID=" + ID, null);
-        sqLiteDatabase.close();
-    }
-
-    //update a week
-    public void updateWeek(Week week) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //updating row
-        sqLiteDatabase.update(TABLE_EXPENSE, extractValuesWeek(week), "ID=" + week.getID(), null);
-        sqLiteDatabase.close();
-    }
-
-    public void updateWeek(String date, double goal) {
-
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //updating row
-        Week w = new Week();
-        w.setDate(date);
-        w.setGoal(goal);
-        int i = sqLiteDatabase.update(TABLE_WEEK, extractValuesWeek(w), "Date='" + date + "'", null);
-        Log.d(TAG,"updateWeek: " + i);
-        sqLiteDatabase.close();
-    }
-
-
-
-    //update the expense
-    public void updateExpense(Expense expense) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //updating row
-        sqLiteDatabase.update(TABLE_EXPENSE, extractValuesExpense(expense), "ID=" + expense.getID(), null);
-        sqLiteDatabase.close();
-    }
-
-    //update the category
-    public void updateCategory(Category category) {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        //updating row
-        sqLiteDatabase.update(TABLE_CATEGORY, extractValuesCategory(category), "ID=" + category.getID(), null);
-        sqLiteDatabase.close();
-    }
-
-    private static ArrayList<Week> extractWeeks(Cursor cursor) {
-        ArrayList<Week> arrayList = new ArrayList<>();
-
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                Week week = new Week();
-                week.setID(cursor.getString(0));
-                week.setGoal(cursor.getDouble(1));
-                week.setDate(cursor.getString(2));
-
-                arrayList.add(week);
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
-        return arrayList;
-    }
-
-
-    private static ArrayList<Expense> extractExpenses(Cursor cursor) {
-        ArrayList<Expense> arrayList = new ArrayList<>();
-
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                Expense expense = new Expense();
-                expense.setID(cursor.getString(0));
-                expense.setTitle(cursor.getString(1));
-                expense.setCategory(cursor.getLong(2));
-                expense.setValue(cursor.getDouble(3));
-                expense.setDate(cursor.getString(4));
-
-                arrayList.add(expense);
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
-        return arrayList;
-    }
-
-
-    private static ArrayList<Category> extractCategories(Cursor cursor) {
-        ArrayList<Category> arrayList = new ArrayList<>();
-
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                Category category = new Category();
-                category.setID(cursor.getString(0));
-                category.setName(cursor.getString(1));
-                category.setSmiley(cursor.getString(2));
-
-                arrayList.add(category);
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
-        return arrayList;
-    }
-
-    private static ContentValues extractValuesExpense(Expense expense) {
-        ContentValues values =  new ContentValues();
-        values.put("Title", expense.getTitle());
-        values.put("Category", expense.getCategory());
-        values.put("Value", expense.getValue());
-        values.put("Date", expense.getDate());
-        return values;
-    }
-
-    private static ContentValues extractValuesWeek(Week week) {
-        Log.d(TAG,"extractValuesWeek: " + week.toString());
-        ContentValues values =  new ContentValues();
-        values.put("Date", week.date);
-        values.put("Goal", week.goal);
-        return values;
-    }
-
-    private static ContentValues extractValuesCategory(Category category) {
-        ContentValues values =  new ContentValues();
-        values.put("Name", category.getName());
-        values.put("Smiley", category.getSmiley());
-        return values;
-    }*/
 }

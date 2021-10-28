@@ -81,16 +81,14 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.ViewHold
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView title;
-        ImageView play;
         CardView cvContainer;
 
         ViewHolder(View itemView) {
             super(itemView);
 
             title = RowWorkoutBinding.bind(itemView).title;
-            play = RowWorkoutBinding.bind(itemView).play;
             cvContainer = RowWorkoutBinding.bind(itemView).cvContainer;
-            play.setOnClickListener(this);
+            RowWorkoutBinding.bind(itemView).clickableLayout.setOnClickListener(this);
         }
 
         @Override

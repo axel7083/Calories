@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/layout_container"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/half_round_bg"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/title_todo"
+        android:layout_marginTop="10dp"
+        android:text="Exercises"
+        android:layout_marginHorizontal="@dimen/side_margin"
+        android:layout_width="wrap_content"
+        android:textSize="22dp"
+        android:textColor="@color/textColorPrimary"
+        android:layout_height="wrap_content"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginHorizontal="@dimen/side_margin"
+        android:id="@+id/todo"
+        tools:listitem="@layout/row_exercise_detailed"
+        tools:itemCount="3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/title_done"
+        android:layout_marginTop="10dp"
+        android:text="Already done today"
+        android:layout_marginHorizontal="@dimen/side_margin"
+        android:layout_width="wrap_content"
+        android:textSize="22dp"
+        android:textColor="@color/textColorPrimary"
+        android:layout_height="wrap_content"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginHorizontal="@dimen/side_margin"
+        android:id="@+id/done"
+        tools:listitem="@layout/row_exercise_detailed"
+        tools:itemCount="3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

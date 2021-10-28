@@ -13,6 +13,7 @@ import com.github.calories.models.Stats
 import com.github.calories.utils.CustomBarChartRender
 import com.github.calories.utils.ThreadUtils
 import com.github.calories.utils.UtilsTime.*
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -32,7 +33,6 @@ class StatsFragment : Fragment() {
     //private var rawValues: List<Pair<String, Float>> = ArrayList()
 
     private var stats: List<Stats>? = null
-
     private lateinit var db: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +52,11 @@ class StatsFragment : Fragment() {
         return binding.root    }
 
 
-    private fun getEnergy(): List<Pair<String, Float>> {
-        var energy: List<Pair<String, Float>> = ArrayList()
+    private fun getEnergy(): List<Pair<String, FloatArray>> {
+        var energy: List<Pair<String, FloatArray>> = ArrayList()
 
         stats!!.forEach { stat ->
-            energy = energy.plus(Pair(stat.day.substring(5),stat.energy.toFloat()))
+            energy = energy.plus(Pair(stat.day.substring(5),floatArrayOf(stat.energy.toFloat())))
             //rawValues = rawValues.plus(raw.value)
         }
         return energy
@@ -69,8 +69,11 @@ class StatsFragment : Fragment() {
         ThreadUtils.execute(requireActivity(), { db.getStats(now.with(field, 1).toString(),
                 now.with(field, 7).toString()) }, { stats ->
             this.stats = stats as List<Stats>
+
             back()
         })
+
+
     }
 
     private fun setupCharts() {
@@ -81,7 +84,6 @@ class StatsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         if(stats == null) {
-            binding.chart.setData(ArrayList())
             fetchData {
                 setupCharts()
             }

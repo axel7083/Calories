@@ -93,8 +93,8 @@ class DayDetailsActivity : AppCompatActivity() {
         })
     }
 
-    private fun buildStats(records: List<Record>): List<Pair<String, Float>> {
-        var lists : List<Pair<String, Float>> = ArrayList()
+    private fun buildStats(records: List<Record>): List<Pair<String, FloatArray>> {
+        var lists : List<Pair<String, FloatArray>> = ArrayList()
 
         var fat = 0.0
         var fiber = 0.0
@@ -116,13 +116,13 @@ class DayDetailsActivity : AppCompatActivity() {
             }
         }
 
-        lists = lists.plus(Pair("Fat", fat.toFloat()))
-        lists = lists.plus(Pair("Fiber", fiber.toFloat()))
-        lists = lists.plus(Pair("Salt", salt.toFloat()))
-        lists = lists.plus(Pair("Proteins", proteins.toFloat()))
-        lists = lists.plus(Pair("SaturatedFat", saturatedFat.toFloat()))
-        lists = lists.plus(Pair("Sodium", sodium.toFloat()))
-        lists = lists.plus(Pair("Sugars", sugars.toFloat()))
+        lists = lists.plus(Pair("Fat", floatArrayOf(fat.toFloat())))
+        lists = lists.plus(Pair("Fiber",  floatArrayOf(fiber.toFloat())))
+        lists = lists.plus(Pair("Salt",  floatArrayOf(salt.toFloat())))
+        lists = lists.plus(Pair("Proteins",  floatArrayOf(proteins.toFloat())))
+        lists = lists.plus(Pair("SaturatedFat",  floatArrayOf(saturatedFat.toFloat())))
+        lists = lists.plus(Pair("Sodium",  floatArrayOf(sodium.toFloat())))
+        lists = lists.plus(Pair("Sugars",  floatArrayOf(sugars.toFloat())))
 
         return lists
     }

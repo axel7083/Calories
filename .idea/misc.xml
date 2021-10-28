@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/axels/OneDrive - Universite De Technologie De Belfort-Montbeliard/Private/Android/Calories/app/src/main/res/layout/activity_stats.xml" value="0.17831813576494426" />
+        <entry key="..\:/Users/axels/OneDrive - Universite De Technologie De Belfort-Montbeliard/Private/Android/Calories/app/src/main/res/layout/activity_workout.xml" value="0.3160333642261353" />
+        <entry key="..\:/Users/axels/OneDrive - Universite De Technologie De Belfort-Montbeliard/Private/Android/Calories/app/src/main/res/layout/fragment_exercise.xml" value="0.17831813576494426" />
+        <entry key="..\:/Users/axels/OneDrive - Universite De Technologie De Belfort-Montbeliard/Private/Android/Calories/app/src/main/res/layout/fragment_first.xml" value="0.20572916666666666" />
+        <entry key="..\:/Users/axels/OneDrive - Universite De Technologie De Belfort-Montbeliard/Private/Android/Calories/app/src/main/res/layout/fragment_stats.xml" value="0.17831813576494426" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

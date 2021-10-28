@@ -192,6 +192,10 @@ class MainActivity : AppCompatActivity() {
             CREATE_WORKOUT_ACTIVITY-> {
                 gymFragment.refresh()
             }
+            WORKOUT_ACTIVITY -> {
+                if(resultCode == RESULT_OK)
+                    gymFragment.refresh()
+            }
         }
     }
 
@@ -210,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         const val ADD_ACTIVITY: Int = 1
         const val DAY_DETAIL_ACTIVITY: Int = 3
         const val CREATE_WORKOUT_ACTIVITY: Int = 4
+        const val WORKOUT_ACTIVITY: Int = 5
         const val TAG: String = "MainActivity"
         const val HOME_FRAGMENT: Int = 0
         const val GYM_FRAGMENT: Int = 1

@@ -8,30 +8,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.github.calories.R
 import com.github.calories.databinding.FragmentExerciseBinding
 import com.github.calories.models.Exercise
+import com.github.calories.models.ExerciseInput
 import com.github.calories.utils.SimpleCountDownTimer
 import com.github.calories.utils.UtilsTime.*
 import java.util.*
 
 
-class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener, View.OnClickListener {
+class ExerciseFragment : Fragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentExerciseBinding
     private lateinit var exerciseEvent: ExerciseEvent
     private lateinit var exercise: Exercise
 
-    private var simpleCountDownTimer: SimpleCountDownTimer? = null
-    private var repetitionFragment: ExerciseInputFragment? = null
-
-    private var repeatedIndex: Int? = null
-
-    private var currentState: Int = STATE_STARTING
-    private var isRecover: Boolean = false
+    private var exerciseInputFragment: ExerciseInputFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,14 +35,18 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener, V
 
     fun setExercise(exercise: Exercise) {
         this.exercise = exercise
-        if(this::binding.isInitialized) {
-            setupData()
-        }
     }
 
     private fun setupData() {
         binding.preview.setImageBitmap(exercise.image)
-        startExercise()
+        exerciseEvent.onSetTitle(exercise.name!!)
+
+        val fragmentManager = activity?.supportFragmentManager
+        val fragmentTransaction = fragmentManager?.beginTransaction()
+        exerciseInputFragment = ExerciseInputFragment(exerciseId = exercise.id!!/*TODO: send this to have callback events*/)
+        fragmentTransaction?.replace(R.id.repetitionContainer, exerciseInputFragment!!)
+        //fragmentTransaction?.addToBackStack(null)
+        fragmentTransaction?.commit()
     }
 
 
@@ -72,149 +72,37 @@ class ExerciseFragment : Fragment(), SimpleCountDownTimer.OnCountDownListener, V
         if(this::exercise.isInitialized)
             setupData()
 
-        binding.btnCenter.setOnClickListener(this)
-        binding.btnSkip.setOnClickListener(this)
-        binding.btnLater.setOnClickListener(this)
-        binding.stats.setOnClickListener(this)
+        binding.btnCancel.setOnClickListener(this)
+        binding.btnFinish.setOnClickListener(this)
     }
 
-    private fun startExercise() {
-        currentState = STATE_WORKING
-        isRecover = false
 
-        exerciseEvent.onSetTitle("Working")
-        if(repeatedIndex == null)
-            repeatedIndex = 1
-
-        binding.exerciseName.text = exercise.name + (if(repeatedIndex != null) " $repeatedIndex/${ exercise.repetitionCount}" else "")
-
-        simpleCountDownTimer = SimpleCountDownTimer(exercise.time!!.toLong(), 1, this)
-        simpleCountDownTimer!!.start()
-        binding.btnCenter.text = "Pause"
-    }
-
-    private fun startRecover() {
-        currentState = STATE_RECOVER
-        isRecover = true
-
-        repeatedIndex = repeatedIndex!! + 1
-
-        exerciseEvent.onSetTitle("Recover time")
-        binding.exerciseName.text = "Recover time ${exercise.name}"
-
-        simpleCountDownTimer = SimpleCountDownTimer(exercise.recoverTime!!.toLong(), 1, this)
-        simpleCountDownTimer!!.start()
-        binding.btnCenter.text = "+ 20s"
-    }
-
-    override fun onCountDownActive(time: String?) {
-        binding.timeLeft.text = time
-    }
-
-    override fun onCountDownFinished() {
-
-        if(currentState == STATE_RECOVER) {
-            startExercise()
-            return
-        }
-
-        if(exercise.repetitionCount != null) {
-            if(repeatedIndex == exercise.repetitionCount) {
-
-                if(exercise.weighted == true) {
-                    
+    override fun onClick(p0: View) {
+        when(p0.id) {
+            binding.btnFinish.id -> {
+                System.out.println("FINISH clicked")
+                if(exerciseInputFragment?.exerciseInputAdapter?.data != null && exerciseInputFragment?.exerciseInputAdapter?.data?.size!! > 0) {
+                    exerciseEvent.onFinish(exerciseInputFragment?.exerciseInputAdapter?.data)
                 }
                 else
                 {
-                    currentState = STATE_FINISHED
-                    exerciseEvent.onFinish()
+                    Toast.makeText(context, "You need at least one record of weight/repetition to finish this exercise.", Toast.LENGTH_LONG).show()
                 }
             }
-            else
-                startRecover()
-        }
-        else
-        {
-            currentState = STATE_FINISHED
-            exerciseEvent.onFinish()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        if(currentState != STATE_PAUSED)
-            pause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        if(currentState == STATE_PAUSED)
-            resume()
-    }
-
-    override fun onDestroy() {
-        simpleCountDownTimer?.pause()
-        simpleCountDownTimer = null
-        super.onDestroy()
-    }
-
-    private fun pause() {
-        currentState = STATE_PAUSED
-        binding.btnCenter.text = "Resume"
-        simpleCountDownTimer!!.pause()
-    }
-
-    private fun resume() {
-        currentState = if(isRecover) STATE_RECOVER else STATE_WORKING
-        binding.btnCenter.text = "Pause"
-        simpleCountDownTimer!!.resume()
-    }
-
-    override fun onClick(p0: View) {
-
-        when(p0.id) {
-            binding.btnCenter.id -> {
-                when (currentState) {
-                    STATE_WORKING -> {
-                        pause()
-                    }
-                    STATE_RECOVER -> {
-                        simpleCountDownTimer!!.add(20)
-                    }
-                    STATE_PAUSED -> {
-                        resume()
-                    }
-                }
-            }
-            binding.btnSkip.id -> {
-                currentState = STATE_FINISHED
-                exerciseEvent.onSkip()
-            }
-            binding.btnLater.id -> {
-                currentState = STATE_FINISHED
-                exerciseEvent.onLater()
-            }
-            binding.stats.id -> {
-
+            binding.btnCancel.id -> {
+                System.out.println("CANCEL clicked")
+                exerciseEvent.onCancel()
             }
         }
     }
 
     companion object {
-        private const val TAG: String = "StatsFragment"
-        private const val STATE_STARTING = 0
-        private const val STATE_RECOVER = 1
-        private const val STATE_WORKING = 2
-        private const val STATE_PAUSED = 3
-        private const val STATE_FINISHED = 4
+        private const val TAG: String = "ExerciseFragment"
     }
 
     interface ExerciseEvent {
-        fun onFinish()
-        fun onSkip()
-        fun onLater()
+        fun onFinish(inputs: List<ExerciseInput>?)
+        fun onCancel()
         fun onSetTitle(str: String)
     }
 

@@ -11,6 +11,7 @@
         android:id="@+id/status_bar"
         android:layout_width="match_parent"
         app:leftIcon="@drawable/ic_stop"
+        app:rightIcon="@drawable/ic_pencil"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:title="Workout"/>

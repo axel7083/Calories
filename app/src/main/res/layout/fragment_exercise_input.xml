@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,84 +8,62 @@
     android:orientation="vertical"
     android:layout_gravity="center_horizontal">
 
-    <TextView
-        android:text="Movements count"
-        android:layout_marginHorizontal="@dimen/side_margin"
-        android:layout_width="match_parent"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:textColor="@color/textColorPrimary"
-        android:layout_height="wrap_content"/>
-
-    <androidx.cardview.widget.CardView
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardElevation="0dp"
-        app:cardCornerRadius="15dp"
-        app:cardBackgroundColor="@color/colorPrimary"
-        android:layout_marginTop="5dp">
-        <LinearLayout
+        android:orientation="vertical">
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            app:cardElevation="0dp"
+            app:cardCornerRadius="15dp"
+            app:cardBackgroundColor="@color/colorPrimary"
+            android:layout_marginTop="5dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRepetition"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="3dp"
-                android:layout_centerHorizontal="true"
-                tools:itemCount="1"
-                android:layout_centerVertical="true"
-                android:clipToPadding="false"
-                android:paddingLeft="183dp"
-                android:paddingRight="183dp" />
+                android:orientation="vertical">
 
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:nestedScrollingEnabled="true"
+                    android:id="@+id/rvWeight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/row_set"
+                    tools:itemCount="2" />
+
+            </LinearLayout>
 
 
-    <TextView
-        android:layout_marginTop="10dp"
-        android:text="Weights"
-        android:layout_marginHorizontal="@dimen/side_margin"
-        android:layout_width="match_parent"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:textColor="@color/textColorPrimary"
-        android:layout_height="wrap_content"/>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardElevation="0dp"
-        app:cardCornerRadius="15dp"
-        app:cardBackgroundColor="@color/colorPrimary"
-        android:layout_marginTop="5dp">
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginTop="15dp"
+            android:gravity="center">
+            <androidx.cardview.widget.CardView
+                android:layout_width="45dp"
+                app:cardBackgroundColor="@color/colorPrimary"
+                android:layout_height="45dp"
+                app:cardCornerRadius="90dp">
+                <ImageView
+                    android:id="@+id/add_btn"
+                    android:src="@drawable/plus"
+                    android:padding="10dp"
+                    app:tint="@color/textColorPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvWeight"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:clipToPadding="false"
-                android:layout_marginBottom="3dp"
-                android:paddingLeft="183dp"
-                android:paddingRight="183dp" />
-
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
-
-
-    </androidx.cardview.widget.CardView>
-
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
 
 
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>

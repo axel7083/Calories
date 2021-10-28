@@ -27,6 +27,14 @@ class StatusBar(context: Context, attrs: AttributeSet) : LinearLayout(context, a
         binding.title.text = attributes.getText(R.styleable.StatusBar_title)?: context.getText(R.string.app_name)
     }
 
+    fun setRightIcon(drawable: Drawable?) {
+        setDrawableOrNot(drawable,binding.rightIcon,binding.rightIconContainer)
+    }
+
+    fun setLeftIcon(drawable: Drawable?) {
+        setDrawableOrNot(drawable,binding.leftIcon,binding.leftIconContainer)
+    }
+
     private fun setDrawableOrNot(drawable: Drawable?, view: ImageView, container: CardView) {
         if(drawable == null)
             container.visibility = View.GONE

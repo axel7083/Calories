@@ -9,11 +9,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.calories.DatabaseHelper
-import com.github.calories.activities.CreateExerciseActivity
-import com.github.calories.activities.CreateWorkoutActivity
-import com.github.calories.activities.HistoryActivity
+import com.github.calories.activities.*
 import com.github.calories.activities.MainActivity.Companion.CREATE_WORKOUT_ACTIVITY
-import com.github.calories.activities.WorkoutActivity
+import com.github.calories.activities.MainActivity.Companion.WORKOUT_ACTIVITY
 import com.github.calories.adapters.WorkoutAdapter
 import com.github.calories.databinding.FragmentGymBinding
 import com.github.calories.databinding.FragmentStatsBinding
@@ -81,13 +79,13 @@ class GymFragment : Fragment() {
         binding.workouts.adapter = workoutAdapter
 
         workoutAdapter.setClickListener { workout ->
-            val i = Intent(context, WorkoutActivity::class.java)
+            val i = Intent(activity as MainActivity, WorkoutActivity::class.java)
             i.putExtra("workout", Gson().toJson(workout as Workout))
-            requireActivity().startActivity(i) //TODO: maybe see if needed to get a result? to refresh future data display maybe
+            requireActivity().startActivityForResult(i,WORKOUT_ACTIVITY) //TODO: maybe see if needed to get a result? to refresh future data display maybe
         }
 
         binding.btnCreate.setOnClickListener {
-            requireActivity().startActivityForResult(Intent(context, CreateWorkoutActivity::class.java), CREATE_WORKOUT_ACTIVITY)
+            requireActivity().startActivityForResult(Intent(activity as MainActivity, CreateWorkoutActivity::class.java), CREATE_WORKOUT_ACTIVITY)
         }
 
         fetchData()

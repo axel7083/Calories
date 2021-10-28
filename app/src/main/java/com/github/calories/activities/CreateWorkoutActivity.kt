@@ -22,6 +22,7 @@ import com.github.calories.adapters.ExerciseAdapter
 import com.github.calories.adapters.WorkoutAdapter
 import com.github.calories.databinding.ActivityCreateExerciseBinding
 import com.github.calories.databinding.ActivityCreateWorkoutBinding
+import com.github.calories.dialogs.ConfirmDialog
 import com.github.calories.dialogs.InputDialog
 import com.github.calories.models.Category
 import com.github.calories.models.Exercise
@@ -42,7 +43,7 @@ class CreateWorkoutActivity : AppCompatActivity() {
     // SQLite Database
     private lateinit var db: DatabaseHelper
 
-    private var workout: Workout = Workout()
+    private lateinit var workout: Workout
 
     var list: List<Exercise> = ArrayList()
 
@@ -52,33 +53,61 @@ class CreateWorkoutActivity : AppCompatActivity() {
         binding = ActivityCreateWorkoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        db = DatabaseHelper(this)
+        // load workout if we are editing it
+        val json = intent.getStringExtra("workout");
+        workout = if(json != null) Gson().fromJson(json, Workout::class.java) else Workout()
 
+        if(workout.name != null)
+            binding.nameEdit.setText(workout.name)
+
+        if(workout.id == null) {
+            binding.statusBar.setRightIcon(null)
+        }
+        else
+        {
+            binding.statusBar.setTitle("Edit workout")
+
+            binding.statusBar.setRightIconClickListener {
+                ThreadUtils.execute(this@CreateWorkoutActivity, { db.deleteWorkout(workout) }, {
+                    Log.d(TAG, "Workout deleted")
+                    setResult(RESULT_OK)
+                    finish()
+                })
+            }
+        }
+
+
+        db = DatabaseHelper(this)
 
         binding.statusBar.setLeftIconClickListener {
             finish()
         }
 
         adapter = ExerciseAdapter(this)
+
+        adapter.setLongClickListener {
+            val dialog = ConfirmDialog(this, { output ->
+                if(output)
+                    ThreadUtils.execute(this@CreateWorkoutActivity, {db.deleteExercise(it) }, {
+                        fetchData()
+                    })
+            },"Delete ${it.name}","Are you sure you want to delete this exercise? It will delete all records made in this exercise.")
+            val window = dialog.window
+            if (window != null) {
+                window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.show()
+                window.setGravity(Gravity.CENTER)
+                window.setLayout(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        }
+
+        fetchData()
+
         binding.exerciseRV.adapter = adapter
         binding.exerciseRV.layoutManager = GridLayoutManager(this, 2)
-
-        // Fetching data
-        ThreadUtils.execute(this@CreateWorkoutActivity, { db.exercises }, { exercises ->
-
-            list = exercises as List<Exercise>
-
-            list.forEach { exercise ->
-                run {
-                    exercise.loadBitmap(this@CreateWorkoutActivity)
-                }
-            }
-
-            Log.d(TAG, "onCreate: db.exercises => ${list.size}" )
-
-            adapter.updateData(list)
-            adapter.notifyDataSetChanged()
-        })
 
         binding.addExercise.setOnClickListener {
             startActivityForResult(Intent(this,CreateExerciseActivity::class.java),CREATE_EXERCISE_ACTIVITY)
@@ -93,27 +122,57 @@ class CreateWorkoutActivity : AppCompatActivity() {
 
             workout.name = name
             workout.exercises = adapter.selected
-
-            try {
-                workout.recoverTime = binding.recoverTime.text.toString().toInt()
-            }
-            catch (e: NumberFormatException) {
-                Toast.makeText(this@CreateWorkoutActivity,"Invalid input.",Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
+            
             if(workout.exercises!!.isEmpty()) {
                 Toast.makeText(this@CreateWorkoutActivity,"Select one exercise at least.",Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            ThreadUtils.execute(this@CreateWorkoutActivity, { db.addWorkout(workout) }, {
-                Log.d(TAG, "onCreate: Saving to storage success")
-                setResult(RESULT_OK)
-                finish()
-            })
+            if(workout.id != null) {
+                ThreadUtils.execute(this@CreateWorkoutActivity, { db.updateWorkout(workout) }, { updatedWorkout ->
 
+                    Log.d(TAG, "onCreate: Saving to storage success")
+                    val intent = Intent()
+                    intent.putExtra("workout", Gson().toJson(updatedWorkout as Workout))
+                    setResult(RESULT_OK, intent)
+                    finish()
+                })
+            }
+            else
+            {
+                ThreadUtils.execute(this@CreateWorkoutActivity, { db.addWorkout(workout) }, {
+                    Log.d(TAG, "onCreate: Saving to storage success")
+                    setResult(RESULT_OK)
+                    finish()
+                })
+            }
         }
+    }
+
+    private fun fetchData() {
+        // Fetching data
+        ThreadUtils.execute(this@CreateWorkoutActivity, { db.exercises }, { exercises ->
+
+
+            list = exercises as List<Exercise>
+
+            list.forEach { exercise ->
+                run {
+                    Log.d(TAG, "onCreate: loading bitmap for id " + exercise.id)
+                    exercise.loadBitmap(this@CreateWorkoutActivity)
+                }
+            }
+
+            workout.exercises?.forEach { exercise ->
+                adapter.setSelected(exercise, true)
+                adapter.notifyDataSetChanged()
+            }
+
+            Log.d(TAG, "onCreate: db.exercises => ${list.size}" )
+
+            adapter.updateData(list)
+            adapter.notifyDataSetChanged()
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -128,6 +187,16 @@ class CreateWorkoutActivity : AppCompatActivity() {
                     adapter.notifyDataSetChanged()
                 }
             }
+        }
+    }
+
+    var backCount: Long = 0
+    override fun onBackPressed() {
+        if (System.currentTimeMillis() / 1000 - backCount < 3) {
+            finish()
+        } else {
+            backCount = System.currentTimeMillis() / 1000
+            Toast.makeText(this, "Press one more time to exit.", Toast.LENGTH_LONG).show()
         }
     }
 
